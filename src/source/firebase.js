@@ -7,10 +7,11 @@
 import { initializeApp } from 'firebase/app'
 import {
   browserLocalPersistence,
-  getAuth,
+  browserPopupRedirectResolver,
   GoogleAuthProvider,
+  indexedDBLocalPersistence,
+  initializeAuth,
   onAuthStateChanged,
-  setPersistence,
   signInWithPopup,
   signInWithRedirect,
   signOut as fbSignOut,
@@ -43,7 +44,12 @@ const config = {
 }
 
 const app = initializeApp(config)
-const auth = getAuth(app)
+// Pamięć sesji ustawiona od razu, a nie przy kliknięciu: czekanie (`await`) przed
+// `signInWithPopup` sprawia, że Safari blokuje okienko logowania.
+const auth = initializeAuth(app, {
+  persistence: [indexedDBLocalPersistence, browserLocalPersistence],
+  popupRedirectResolver: browserPopupRedirectResolver,
+})
 // Pamięć podręczna na telefonie: notatki i dane działają też bez internetu.
 const db = initializeFirestore(app, {
   localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
@@ -57,14 +63,13 @@ export function watchUser(callback) {
   return onAuthStateChanged(auth, (u) => callback(toUser(u) || null))
 }
 
-// Aplikacja zainstalowana na pulpicie iPhone'a nie otwiera okienek — tam
-// logowanie przez przekierowanie. W przeglądarce okienko, a gdy je zablokowano — też przekierowanie.
+// Logowanie w okienku, także w aplikacji na pulpicie iPhone'a. Przekierowanie tylko
+// awaryjnie: strona stoi na GitHub Pages, a logowanie na domenie Firebase, więc
+// Safari (blokada pamięci cudzych domen) gubi po nim zalogowanie i wraca ekran logowania.
+// `signInWithPopup` musi ruszyć od razu po kliknięciu — bez `await` przed nim.
 export async function signIn() {
-  await setPersistence(auth, browserLocalPersistence)
   const provider = new GoogleAuthProvider()
   provider.setCustomParameters({ prompt: 'select_account' })
-  const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone
-  if (standalone) return signInWithRedirect(auth, provider)
   try {
     await signInWithPopup(auth, provider)
   } catch (e) {
