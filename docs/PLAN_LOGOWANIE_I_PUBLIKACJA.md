@@ -26,9 +26,17 @@ Kolejna osoba z dostępem: Firestore -> `dozwoleni` -> *Add document*, ID = adre
 
 **Zostało:**
 
-1. `npx firebase-tools login` (Laura, raz) i `npx firebase-tools use --add` -> `psycho-b354b`.
-2. `npm run deploy:firebase` — testy, budowanie bez notatek, wysłanie strony i reguł.
-   Strona: `https://psycho-b354b.web.app`.
+1. Strona stoi na **GitHub Pages** z publicznego repo `Psychologia`:
+   `https://lauranowakkontakt-creator.github.io/Psychologia/`. Buduje ją `.github/workflows/strona.yml`
+   po zielonych „Testach” na `main` (albo ręcznie: Actions -> Strona -> *Run workflow*). W paczce nie ma notatek —
+   przychodzą z Firestore po zalogowaniu. Raz trzeba:
+   - Settings -> Pages -> *Source*: **GitHub Actions**,
+   - Settings -> Secrets and variables -> Actions: sekrety `VITE_FIREBASE_API_KEY` i `VITE_FIREBASE_APP_ID`
+     (z `.env.firebase`),
+   - Firebase -> Authentication -> Settings -> *Authorized domains* -> dodać `lauranowakkontakt-creator.github.io`,
+   - wysłać reguły Firestore (raz i po każdej zmianie `firestore.rules`):
+     `npx firebase-tools deploy --only firestore:rules --project psycho-b354b`.
+2. Firebase Hosting (`npm run deploy:firebase`, `psycho-b354b.web.app`) zostaje jako zapas — nie jest potrzebny.
 3. Publiczne repo `Psychologia` (sam kod) — patrz niżej.
 
 **Po zmianie notatek:** `GOOGLE_APPLICATION_CREDENTIALS=/ścieżka/klucz.json npm run wyslij-notatki`.

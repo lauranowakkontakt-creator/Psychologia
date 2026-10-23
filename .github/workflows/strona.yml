@@ -1,0 +1,67 @@
+name: Strona
+
+# Po zielonych testach na main buduje wersję z logowaniem (bez notatek) i publikuje ją
+# na GitHub Pages: https://lauranowakkontakt-creator.github.io/Psychologia/
+# Notatki przychodzą z Firestore dopiero po zalogowaniu (projekt psycho-b354b).
+#
+# Raz w ustawieniach repo:
+#   Settings -> Pages -> Source: GitHub Actions,
+#   Settings -> Secrets and variables -> Actions: VITE_FIREBASE_API_KEY, VITE_FIREBASE_APP_ID
+#   (wartości z `.env.firebase`).
+on:
+  workflow_run:
+    workflows: [Testy]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+      VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+      VITE_FIREBASE_AUTH_DOMAIN: psycho-b354b.firebaseapp.com
+      VITE_FIREBASE_PROJECT_ID: psycho-b354b
+    steps:
+      - name: Sprawdź sekrety
+        run: |
+          for s in VITE_FIREBASE_API_KEY VITE_FIREBASE_APP_ID; do
+            [ -n "${!s}" ] || { echo "::error::Brak sekretu $s (Settings -> Secrets and variables -> Actions)"; exit 1; }
+          done
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      # Strażnik prywatności potrzebuje notatek do porównania — w publicznym repo są przykładowe.
+      - run: '[ -d content ] || cp -R przyklad/content content'
+      - run: npm ci
+      - run: npm run test:bez-notatek
+      - run: npm run build:firebase
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

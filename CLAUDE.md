@@ -64,7 +64,7 @@ Notatka z kursu/przedmiotu: ramka „W skrócie” (pierwszy akapit), „W pigu�
 aplikacja sama robi fiszki, egzamin i „Pojęcie na teraz” — trzymaj się tego zapisu. Prosty, naturalny język, polskie cudzysłowy i półpauzy.
 Treść parafrazujemy, nie przepisujemy dłuższych cytatów z materiałów.
 
-Projekt leży na dysku exFAT (`/Volumes/Laura_4T/PSYCHOLOGIA/Aplikacja`) — macOS dokłada tam pliki-cienie `._nazwa`.
+Projekt leży na dysku exFAT (`/Volumes/Laura_4T/PLIKI_NOWA_SEGREGACJA/PSYCHOLOGIA/Aplikacja`) — macOS dokłada tam pliki-cienie `._nazwa`.
 Lint i testy je pomijają, a `npm run check` czyści je na starcie (`npm run clean:mac`, też przy błędach gita).
 
 ## Zasady
