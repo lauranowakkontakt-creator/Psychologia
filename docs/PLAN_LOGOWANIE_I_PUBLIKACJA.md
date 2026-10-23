@@ -26,17 +26,17 @@ Kolejna osoba z dostępem: Firestore -> `dozwoleni` -> *Add document*, ID = adre
 
 **Zostało:**
 
-1. Projekt jest przypięty w `.firebaserc` (`psycho-b354b`) — `firebase-tools use --add` już niepotrzebne.
-2. Deploy idzie sam z GitHuba (`.github/workflows/deploy.yml`): po zielonych „Testach” na `main`
-   buduje wersję bez notatek i wysyła stronę oraz reguły. Można go też uruchomić ręcznie
-   (Actions -> Deploy Firebase -> *Run workflow*). Strona: `https://psycho-b354b.web.app`.
-   Raz trzeba dodać sekrety repo (Settings -> Secrets and variables -> Actions -> *New repository secret*):
-   - `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_APP_ID` — przepisane z `.env.firebase`,
-   - `FIREBASE_SERVICE_ACCOUNT` — cały JSON klucza konta usługi do deployu. Konto: Google Cloud ->
-     IAM -> Service Accounts -> *Create* (np. `github-deploy`), role **Firebase Hosting Admin**,
-     **Firebase Rules Admin**, **Service Usage Consumer**, potem *Keys -> Add key -> JSON*.
-     Nie używaj klucza Admin SDK od `wyslij-notatki` — ma dostęp do wszystkich danych.
-   Z Maca nadal działa `npx firebase-tools login` + `npm run deploy:firebase`.
+1. Strona stoi na **GitHub Pages** z publicznego repo `Psychologia`:
+   `https://lauranowakkontakt-creator.github.io/Psychologia/`. Buduje ją `.github/workflows/strona.yml`
+   po zielonych „Testach” na `main` (albo ręcznie: Actions -> Strona -> *Run workflow*). W paczce nie ma notatek —
+   przychodzą z Firestore po zalogowaniu. Raz trzeba:
+   - Settings -> Pages -> *Source*: **GitHub Actions**,
+   - Settings -> Secrets and variables -> Actions: sekrety `VITE_FIREBASE_API_KEY` i `VITE_FIREBASE_APP_ID`
+     (z `.env.firebase`),
+   - Firebase -> Authentication -> Settings -> *Authorized domains* -> dodać `lauranowakkontakt-creator.github.io`,
+   - wysłać reguły Firestore (raz i po każdej zmianie `firestore.rules`):
+     `npx firebase-tools deploy --only firestore:rules --project psycho-b354b`.
+2. Firebase Hosting (`npm run deploy:firebase`, `psycho-b354b.web.app`) zostaje jako zapas — nie jest potrzebny.
 3. Publiczne repo `Psychologia` (sam kod) — patrz niżej.
 
 **Po zmianie notatek:** `GOOGLE_APPLICATION_CREDENTIALS=/ścieżka/klucz.json npm run wyslij-notatki`.
