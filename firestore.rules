@@ -1,0 +1,52 @@
+rules_version = '2';
+
+// Reguły dostępu do Firestore — to one, a nie ekran logowania, chronią notatki.
+//
+//   dozwoleni/{email}                  lista osób z dostępem; dodaje je ręcznie Laura w konsoli
+//                                      (ID dokumentu = adres Gmail małymi literami, treść dowolna)
+//   tresc/{paczka}                     notatki; wysyła je tylko `npm run wyslij-notatki`
+//                                      (konto serwisowe omija reguły, z aplikacji zapisu nie ma)
+//   uzytkownicy/{uid}/dane/{klucz}     zakładki, postęp, fiszki, dopiski — każdy widzi tylko swoje
+//
+// Wszystko inne jest zamknięte.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function email() {
+      return request.auth.token.email.lower();
+    }
+
+    function allowed() {
+      return signedIn() && exists(/databases/$(database)/documents/dozwoleni/$(email()));
+    }
+
+    // Zalogowana osoba może sprawdzić tylko, czy SAMA jest na liście (bez przeglądania listy).
+    match /dozwoleni/{adres} {
+      allow get: if signedIn() && adres == email();
+      allow list, write: if false;
+    }
+
+    match /tresc/{paczka} {
+      allow read: if allowed();
+      allow write: if false;
+    }
+
+    match /uzytkownicy/{uid}/dane/{klucz} {
+      allow read: if allowed() && request.auth.uid == uid;
+      allow write: if allowed() && request.auth.uid == uid
+        && klucz in ['psycho-recent', 'psycho-bookmarks', 'psycho-read', 'psycho-srs', 'psycho-notes', 'psycho-highlights']
+        && request.resource.data.keys().hasOnly(['value', 'at'])
+        && request.resource.data.value is string
+        && request.resource.data.value.size() < 900000
+        && request.resource.data.at is int;
+    }
+
+    match /{dokument=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pl" data-theme="night">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- Motyw ustawiony przed pierwszym rysowaniem, żeby nie mignął zły (DESIGN.md: przełącznik). -->
+    <script>
+      (function () {
+        var t = null
+        try { t = JSON.parse(localStorage.getItem('psycho-theme')) } catch (e) {}
+        if (t !== 'day' && t !== 'night') t = matchMedia('(prefers-color-scheme: light)').matches ? 'day' : 'night'
+        document.documentElement.setAttribute('data-theme', t)
+        var meta = document.createElement('meta')
+        meta.name = 'theme-color'
+        meta.content = t === 'day' ? '#F3EEE5' : '#0D0D11'
+        document.head.appendChild(meta)
+      })()
+    </script>
+    <meta name="description" content="Notatki z psychologii: studia i kursy" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Psycho" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&display=swap" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <title>Psycho</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

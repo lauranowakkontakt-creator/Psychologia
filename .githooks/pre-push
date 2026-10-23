@@ -1,0 +1,6 @@
+#!/bin/sh
+# Przed każdym wysłaniem na GitHuba: lint, testy logiki i testy aplikacji
+# w przeglądarkach (iPhone + Android). Jeśli coś nie przechodzi, push się nie wykona.
+# Awaryjnie (świadomie!): git push --no-verify
+echo "Sprawdzam aplikację przed wysłaniem (npm run check)…"
+npm run check

@@ -1,0 +1,17 @@
+node_modules/
+dist/
+dev-dist/
+.DS_Store
+test-results/
+playwright-report/
+._*
+.env.firebase
+.env.*.local
+.firebase/
+firebase-debug.log
+klucz-serwisowy*.json
+dist-logowanie/
+widget/
+
+# Prawdziwe notatki są prywatne (Firestore i repo Psycho) — tu tylko przyklad/content/
+/content/

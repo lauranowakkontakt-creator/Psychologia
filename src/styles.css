@@ -1,0 +1,2176 @@
+/* Układ ekranów. Kolory, czcionki, szkło i gotowe klasy (.glass, .title-xl,
+   .icon-btn, .btn-accent…) są w design/theme.css — tu tylko je składamy.
+   Zmienne dopisane niżej to kolory z makiet, których theme.css nie nazywa. */
+
+:root,
+[data-theme="night"] {
+  --subject-1-text: #CFC2FF;
+  --subject-2-text: #F3C9A0;
+  --subject-3-text: #A9D8BF;
+  --subject-4-text: #AFCBEE;
+  --tint-2-bg: rgba(143, 180, 232, 0.16);
+  --tint-2-text: #AFCBEE;
+  --chevron: #6F6D76;
+  --toggle-active-bg: var(--accent-soft);
+  --toggle-active-shadow: none;
+  --bar-shadow: none;
+  --mark-bg: rgba(185, 166, 255, 0.32);
+  --hl-user-bg: rgba(242, 196, 155, 0.38);
+  --grade-again: #F2A7A7;
+  --grade-good: #A9D8BF;
+  --page-max: 560px;
+  --gutter: 24px;
+}
+
+[data-theme="day"] {
+  --subject-1-text: #5B45B8;
+  --subject-2-text: #8F5413;
+  --subject-3-text: #2E6B4F;
+  --subject-4-text: #3B4BB0;
+  --tint-2-bg: #E3E8FF;
+  --tint-2-text: #3B4BB0;
+  --chevron: #9A99A0;
+  --toggle-active-bg: #FFFFFF;
+  --toggle-active-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --bar-shadow: 0 6px 24px rgba(28, 28, 31, 0.08);
+  --mark-bg: #DCD2FA;
+  --hl-user-bg: #F7DCC2;
+  --grade-again: #A23B3B;
+  --grade-good: #2E6B4F;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1, h2, h3, p {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 2px;
+}
+
+/* Fokus z klawiatury: obrys dopasowany do zaokrągleń kart i przycisków. */
+.glass:focus-visible,
+.icon-btn:focus-visible,
+.btn-accent:focus-visible {
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+/* Poświata ma być nad tłem strony, a pod treścią — `isolation` trzyma
+   plamy z .app-bg (z-index: -1) w obrębie aplikacji. */
+.app {
+  isolation: isolate;
+}
+
+.page {
+  width: 100%;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: calc(16px + env(safe-area-inset-top)) var(--gutter) calc(40px + env(safe-area-inset-bottom));
+  padding-left: max(var(--gutter), env(safe-area-inset-left));
+  padding-right: max(var(--gutter), env(safe-area-inset-right));
+}
+
+@media (max-width: 360px) {
+  :root { --gutter: 20px; }
+}
+
+/* ---------- Nagłówek podstron ---------- */
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 -8px;
+}
+
+.topbar-spacer {
+  width: var(--tap);
+  height: var(--tap);
+}
+
+.text-size-btn {
+  font-family: var(--font-read);
+  font-size: 17px;
+}
+
+.page-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 18px;
+}
+
+.page-sub {
+  font-size: 14px;
+}
+
+.empty {
+  margin-top: 20px;
+}
+
+/* ---------- Start ---------- */
+
+.home-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-right: -4px;
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  min-height: var(--tap);
+  display: inline-flex;
+  align-items: center;
+}
+
+.logo span {
+  color: var(--accent-text);
+}
+
+.theme-toggle {
+  display: flex;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* 38 px kółko w 44 px polu dotyku (3 px ramki pigułki dookoła). */
+.theme-toggle button {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  position: relative;
+}
+
+.theme-toggle button::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+}
+
+.theme-toggle button[aria-pressed="true"] {
+  background: var(--toggle-active-bg);
+  box-shadow: var(--toggle-active-shadow);
+  color: var(--accent-text);
+}
+
+.home-hello {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 28px;
+}
+
+.home-hello .muted {
+  font-size: 14px;
+}
+
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 48px;
+  margin-top: 20px;
+  padding: 0 6px 0 16px;
+  border-radius: var(--radius-m);
+  color: var(--text-muted);
+}
+
+.search-field svg {
+  flex: none;
+}
+
+.search-field--fake {
+  text-align: left;
+  font-size: 15px;
+}
+
+.search-field input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 16px; /* mniej niż 16 px = Safari na iPhonie powiększa stronę przy kliknięciu */
+  outline: none;
+}
+
+.search-field input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-field input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.search-field:focus-within {
+  border-color: var(--accent-tint-border);
+}
+
+.field-clear {
+  width: var(--tap);
+  height: var(--tap);
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+}
+
+.home-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.home-card {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  padding: 18px;
+  color: var(--text);
+}
+
+.home-card-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.home-card.tint-2 .home-card-icon {
+  background: var(--tint-2-bg);
+  color: var(--tint-2-text);
+}
+
+.home-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.home-card-title {
+  font-weight: 600;
+  font-size: 17px;
+  overflow-wrap: anywhere;
+}
+
+.home-card .muted {
+  font-size: 13px;
+}
+
+.home-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 26px;
+}
+
+.block-label {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.continue {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  color: var(--text);
+}
+
+.continue-sub {
+  font-size: 12px;
+}
+
+.continue-title {
+  font-family: var(--font-read);
+  font-size: 23px;
+  line-height: 1.1;
+}
+
+.mini-list {
+  list-style: none;
+  margin: -6px 0 0;
+  padding: 0;
+}
+
+.mini-list li + li {
+  border-top: 1px solid var(--line);
+}
+
+.mini-list a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--tap);
+  padding: 12px 0;
+  color: var(--text);
+}
+
+.mini-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mini-title {
+  font-size: 15px;
+}
+
+.mini-sub {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+.mini-aside {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+/* ---------- Kolory przedmiotów ---------- */
+
+.subject-1 { --subject: var(--subject-1); --subject-text: var(--subject-1-text); }
+.subject-2 { --subject: var(--subject-2); --subject-text: var(--subject-2-text); }
+.subject-3 { --subject: var(--subject-3); --subject-text: var(--subject-3-text); }
+.subject-4 { --subject: var(--subject-4); --subject-text: var(--subject-4-text); }
+
+.dot {
+  flex: none;
+  background: var(--subject, var(--accent));
+}
+
+/* ---------- Lista tematów ---------- */
+
+/* Kafelki podsekcji (np. kursów): szerokie, bo nazwy kursów bywają długie. */
+.section-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 12px;
+  margin: 20px -4px 0;
+}
+
+.section-tile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 84px;
+  padding: 16px 14px 16px 16px;
+  color: var(--text);
+}
+
+.section-tile-icon {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--subject) 20%, transparent);
+  color: var(--subject-text);
+}
+
+.section-tile-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.section-tile-title {
+  font-weight: 600;
+  font-size: 17px;
+  overflow-wrap: anywhere;
+}
+
+.section-tile-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.section-tile-count {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--subject-text);
+}
+
+.section-tiles + .groups {
+  margin-top: 12px;
+}
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 20px -4px 0;
+}
+
+.group {
+  padding: 6px 16px;
+}
+
+.group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--subject-text);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 12px 0;
+  color: var(--text);
+}
+
+.row + .row {
+  border-top: 1px solid var(--line);
+}
+
+.row-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.row-title {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.row-meta {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.row-snippet {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.row-chevron {
+  flex: none;
+  color: var(--chevron);
+}
+
+.search-count {
+  margin: 16px 2px 10px;
+  font-size: 13px;
+}
+
+/* ---------- Notatka ---------- */
+
+.note {
+  /* miejsce na pływający pasek, żeby nie zasłaniał ostatniego akapitu */
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+}
+
+.note-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 22px 2px 0;
+}
+
+.note-title {
+  font-family: var(--font-read);
+  font-weight: 400;
+  font-size: 38px;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+.note-meta {
+  font-size: 13px;
+}
+
+.note-lead {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 20px -2px 0;
+  padding: 16px 18px;
+  border-radius: 20px;
+}
+
+.note-lead-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+
+.note-lead .prose {
+  line-height: 1.45;
+}
+
+.note .prose {
+  font-size: var(--prose-size, 17px);
+}
+
+.note-body {
+  padding: 8px 2px 0;
+}
+
+.prose {
+  overflow-wrap: break-word;
+}
+
+.prose > * {
+  margin: 0;
+}
+
+/* Linki w treści (odsyłacze między notatkami) – podkreślenie, nie sam kolor (WCAG: link-in-text-block) */
+.prose a {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+.prose > * + * {
+  margin-top: 0.8em;
+}
+
+.prose h2,
+.prose h3 {
+  font-family: var(--font-ui);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+  margin-top: 1.6em;
+}
+
+.prose h3 {
+  font-size: 15px;
+  color: var(--text-muted);
+}
+
+.prose > h2:first-child,
+.prose > h3:first-child {
+  margin-top: 1.2em;
+}
+
+.prose ol,
+.prose ul {
+  list-style: none;
+  padding: 0;
+}
+
+.prose li {
+  position: relative;
+  padding-left: 30px;
+}
+
+.prose li + li {
+  margin-top: 10px;
+}
+
+.prose ol {
+  counter-reset: item;
+}
+
+/* Numer „01” i kropka jako osobny znacznik po lewej — treść punktu zostaje
+   zwykłym tekstem (kursywa, linki i myślniki układają się normalnie). */
+.prose ol > li::before {
+  counter-increment: item;
+  content: counter(item, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 0.32em;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--accent-text);
+}
+
+.prose ul > li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 0.62em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent-text);
+}
+
+.prose li > ul,
+.prose li > ol {
+  margin-top: 8px;
+}
+
+.prose blockquote {
+  margin: 0;
+  padding-left: 14px;
+  border-left: 2px solid var(--accent-tint-border);
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.prose strong {
+  font-weight: 500;
+}
+
+.prose code {
+  font-size: 0.85em;
+  padding: 1px 5px;
+  border-radius: 6px;
+  background: var(--glass-bg);
+}
+
+.prose table {
+  /* Tabela zawsze mieści się w szerokości ekranu – tekst się zawija, bez przewijania w bok.
+     break-word (a nie anywhere): słowa łamią się dopiero, gdy naprawdę się nie mieszczą,
+     więc kolumny nie ściskają się do „Wz-orz-ec”. */
+  width: 100%;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  border-collapse: collapse;
+  font-family: var(--font-ui);
+  font-size: 14px;
+}
+
+.prose th,
+.prose td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+/* Nagłówki i pierwsza kolumna (nazwy pojęć) bez dzielenia wyrazów: przy hyphens: auto przeglądarka
+   liczy najmniejszą szerokość kolumny z sylab i ściska ją do „wy-parcie”. Bez tego kolumna ma co najmniej
+   szerokość najdłuższego słowa. */
+.prose th,
+.prose td:first-child {
+  hyphens: manual;
+}
+
+/* Szeroka tabela (3+ kolumny, klasa z src/lib/note.js) na telefonie: każdy wiersz to kafelek.
+   Pierwsza kolumna jest tytułem, pozostałe mają podpis z nagłówka (data-label). */
+@media (max-width: 640px) {
+  .prose table.table-stack,
+  .prose table.table-stack tbody,
+  .prose table.table-stack tr,
+  .prose table.table-stack td {
+    display: block;
+    width: 100%;
+  }
+
+  .prose table.table-stack thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .prose table.table-stack tr {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-s);
+    background: var(--glass-bg);
+  }
+
+  .prose table.table-stack td {
+    padding: 3px 0;
+    border: 0;
+  }
+
+  .prose table.table-stack td:first-child {
+    font-weight: 600;
+    font-size: 15px;
+    padding-bottom: 5px;
+  }
+
+  .prose table.table-stack td:not(:first-child)[data-label]:not([data-label=""])::before {
+    content: attr(data-label) ": ";
+    font-weight: 600;
+  }
+
+  .prose table.table-stack td:empty {
+    display: none;
+  }
+}
+
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-s);
+}
+
+.prose hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+/* ---------- Rysunki i ramki w notatkach ----------
+   Piszemy je w Markdownie jako zwykły HTML (bez pustych linii w środku bloku).
+   Układ sam się przestawia: na wąskim ekranie kolumny idą jedna pod drugą.
+   Klasy: .fig (ramka rysunku), .fig-title, .fig-note,
+   .fig-steps / .step (kolejne fazy z numerem), .fig-group (podpis grupy etapów),
+   .fig-cols (dwie kolumny do porównań), .fig-cards (siatka kafelków),
+   .fig-hub (pojęcie w środku i jego cechy dookoła), .fig-flow (strzałki w dół),
+   .callout (ramka „Pamiętaj” / „Ważne”), .ill (ilustracja SVG – klasy .i-* niżej). */
+
+.prose .fig {
+  padding: 16px;
+  border-radius: var(--radius-m);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.prose * + .fig,
+.prose .fig + * {
+  margin-top: 1.4em;
+}
+
+.prose .fig > * + * {
+  margin-top: 10px;
+}
+
+.prose .fig p {
+  margin: 0;
+}
+
+.prose .fig-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+
+.prose .fig-note {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.prose .fig ul {
+  margin: 0;
+}
+
+.prose .fig li {
+  padding-left: 16px;
+}
+
+.prose .fig li + li {
+  margin-top: 4px;
+}
+
+.prose .fig ul > li::before {
+  left: 2px;
+  top: 0.55em;
+  width: 4px;
+  height: 4px;
+}
+
+.prose .fig strong {
+  font-weight: 600;
+}
+
+/* Fazy / etapy: numer po lewej, opis po prawej. */
+.prose .fig-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prose .step {
+  display: grid;
+  grid-template-columns: minmax(44px, max-content) 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 10px 12px 10px 10px;
+  border-radius: var(--radius-s);
+  background: var(--accent-tint-bg);
+  border: 1px solid var(--accent-tint-border);
+}
+
+.prose .step-no {
+  display: flex;
+  padding: 0 6px;
+  white-space: nowrap;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-family: var(--font-read);
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.prose .step-no--strong {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.prose .step-name {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.prose .step-body {
+  min-width: 0;
+  color: var(--text);
+}
+
+.prose .step-body > * + * {
+  margin-top: 4px;
+}
+
+.prose .step-time {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Podpis nad grupą etapów (np. „Wysłuchiwanie”). */
+.prose .fig-group {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding-top: 4px;
+}
+
+/* Pasek pod całym rysunkiem, np. „Ocenianie – przez cały czas”. */
+.prose .fig-band {
+  padding: 8px 12px;
+  border-radius: var(--radius-s);
+  border: 1px dashed var(--accent-text);
+  color: var(--text);
+  text-align: center;
+  font-size: 13px;
+}
+
+/* Dwie kolumny do porównań. */
+.prose .fig-cols {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.prose .fig-col {
+  padding: 12px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--line);
+  background: var(--accent-tint-bg);
+}
+
+.prose .fig-col > * + * {
+  margin-top: 8px;
+}
+
+.prose .fig-col-head {
+  font-weight: 600;
+  color: var(--accent-text);
+}
+
+.prose .fig-col--muted {
+  background: transparent;
+}
+
+.prose .fig-col--muted .fig-col-head {
+  color: var(--text-muted);
+}
+
+/* Siatka kafelków. */
+.prose .fig-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.prose .card {
+  padding: 10px 12px;
+  border-radius: var(--radius-s);
+  background: var(--accent-tint-bg);
+  border: 1px solid var(--accent-tint-border);
+  color: var(--text);
+}
+
+.prose .card > * + * {
+  margin-top: 4px;
+}
+
+.prose .card-head {
+  font-weight: 600;
+  color: var(--accent-text);
+}
+
+/* Pojęcie w środku, cechy dookoła. Na telefonie: środek u góry, cechy w dwóch kolumnach. */
+.prose .fig-hub {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.prose .hub-center {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.prose .hub-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 10px;
+  border-radius: var(--radius-s);
+  background: var(--accent-soft);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.prose .hub-item:last-child:nth-child(even) {
+  grid-column: 1 / -1;
+}
+
+/* Kroki połączone strzałką w dół. */
+.prose .fig-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.prose .fig-flow > .card + .card {
+  position: relative;
+  margin-top: 22px;
+}
+
+.prose .fig-flow > .card + .card::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -18px;
+  width: 2px;
+  height: 12px;
+  margin-left: -1px;
+  background: var(--accent-text);
+}
+
+.prose .fig-flow > .card + .card::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -7px;
+  margin-left: -5px;
+  border: 5px solid transparent;
+  border-top-color: var(--accent-text);
+  border-bottom: 0;
+}
+
+/* Strzałka powrotu w cyklu, np. cykl przemocy. */
+.prose .fig-loop {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 6px;
+  border-top: 1px dashed var(--accent-text);
+}
+
+/* Tabela w ramce rysunku mieści się w szerokości ekranu (bez przewijania w bok) – tekst się zawija. */
+.prose .fig table {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+.prose .fig th,
+.prose .fig td {
+  padding: 6px 6px;
+}
+
+.prose .fig th {
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+/* Ilustracje SVG wprost w notatce (neuron, mózg, wykresy, schematy).
+   <div class="fig ill"><svg viewBox="…" role="img" aria-label="…">…</svg></div>
+   Kolory tylko z motywu, przez klasy na elementach SVG:
+   .i-line (kontur), .i-fill (fiolet), .i-fill2 (niebieski), .i-fill3 (zielony), .i-fill4 (pomarańcz),
+   .i-text (napis), .i-muted (napis drugorzędny), .i-acc (napis/linia w akcencie), .i-dash (linia przerywana). */
+.prose .ill svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 520px;
+  margin: 0 auto;
+  overflow: visible;
+  font-family: var(--font-ui);
+}
+
+.prose .ill .i-line { fill: none; stroke: var(--text-muted); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.prose .ill .i-fill { fill: var(--accent-soft); stroke: var(--accent-text); stroke-width: 1.4; }
+.prose .ill .i-fill2 { fill: var(--tint-2-bg); stroke: var(--tint-2-text); stroke-width: 1.4; }
+.prose .ill .i-fill3 { fill: color-mix(in srgb, var(--subject-3-text) 16%, transparent); stroke: var(--subject-3-text); stroke-width: 1.4; }
+.prose .ill .i-fill4 { fill: color-mix(in srgb, var(--subject-2-text) 16%, transparent); stroke: var(--subject-2-text); stroke-width: 1.4; }
+.prose .ill .i-solid { fill: var(--accent); stroke: none; }
+.prose .ill .i-text { fill: var(--text); font-size: 13px; }
+.prose .ill .i-muted { fill: var(--text-muted); font-size: 12px; }
+.prose .ill .i-acc { fill: var(--accent-text); stroke: var(--accent-text); }
+.prose .ill .i-on { fill: var(--on-accent); } /* napis na pełnym akcencie (.i-solid) */
+.prose .ill text.i-acc { stroke: none; font-size: 13px; font-weight: 600; }
+.prose .ill .i-arrow { fill: none; stroke: var(--accent-text); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.prose .ill .i-dash { fill: none; stroke: var(--text-muted); stroke-width: 1.2; stroke-dasharray: 4 4; }
+
+/* Ramki „Pamiętaj”, „Ważne”. */
+.prose .callout {
+  padding: 12px 14px;
+  border-radius: var(--radius-s);
+  border-left: 3px solid var(--accent-text);
+  background: var(--accent-tint-bg);
+}
+
+.prose * + .callout,
+.prose .callout + * {
+  margin-top: 1.2em;
+}
+
+.prose .callout > * {
+  margin: 0;
+}
+
+.prose .callout > * + * {
+  margin-top: 6px;
+}
+
+.prose .callout-label {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+
+@media (min-width: 460px) {
+  .prose .fig-cols {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .prose .fig-hub {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .prose .hub-center {
+    grid-column: 2;
+    grid-row: 2;
+    border-radius: var(--radius-m);
+  }
+
+  .prose .hub-item:last-child:nth-child(even) {
+    grid-column: auto;
+  }
+}
+
+/* Tekst trafienia zawsze w pełnym kolorze — szary na fiolecie miałby za słaby kontrast. */
+mark {
+  background: var(--mark-bg);
+  color: var(--text);
+  border-radius: 3px;
+  padding: 0 1px;
+}
+
+/* Pływający pasek na dole notatki. */
+.note-bar {
+  position: fixed;
+  z-index: 10;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: calc(min(100vw, var(--page-max)) - 32px);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  box-shadow: var(--bar-shadow);
+}
+
+.bar-btn {
+  width: var(--tap);
+  height: var(--tap);
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  color: var(--text);
+}
+
+.bar-btn[aria-pressed="true"] {
+  color: var(--accent-text);
+}
+
+.bar-next {
+  flex: 1;
+  min-width: 0;
+  padding: 0 16px;
+}
+
+.bar-next-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bar-next svg {
+  flex: none;
+}
+
+/* ---------- Błąd ekranu ---------- */
+
+.error-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.error-actions .btn-accent {
+  padding: 0 22px;
+}
+
+/* Samodzielny link tekstowy (poza treścią notatki) — z pełnym polem dotyku. */
+.text-link {
+  min-height: var(--tap);
+  display: inline-flex;
+  align-items: center;
+  font-weight: 500;
+}
+
+/* ---------- Reakcja na dotyk i najechanie ---------- */
+
+.home-card,
+.section-tile,
+.continue,
+.search-field--fake,
+.row,
+.mini-list a,
+.icon-btn,
+.bar-btn,
+.btn-accent,
+.theme-toggle button {
+  transition: transform 0.15s ease, background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.home-card:active,
+.section-tile:active,
+.continue:active,
+.search-field--fake:active {
+  transform: scale(0.98);
+}
+
+.icon-btn:active,
+.bar-btn:active,
+.btn-accent:active,
+.theme-toggle button:active {
+  transform: scale(0.94);
+}
+
+.row:active,
+.mini-list a:active {
+  opacity: 0.6;
+}
+
+@media (hover: hover) {
+  .home-card:hover,
+  .section-tile:hover,
+  .search-field--fake:hover,
+  .icon-btn:hover {
+    background: var(--accent-tint-bg);
+  }
+
+  .continue:hover {
+    border-color: var(--accent-text);
+  }
+
+  .row:hover .row-title,
+  .mini-list a:hover .mini-title {
+    color: var(--accent-text);
+  }
+
+  .row:hover .row-chevron,
+  .section-tile:hover .row-chevron {
+    color: var(--accent-text);
+    transform: translateX(2px);
+  }
+
+  .bar-btn:hover {
+    background: var(--accent-soft);
+  }
+
+  .btn-accent:hover {
+    opacity: 0.9;
+  }
+}
+
+.row-chevron {
+  transition: transform 0.15s ease, color 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+  }
+
+  .home-card:active,
+  .section-tile:active,
+  .continue:active,
+  .search-field--fake:active,
+  .icon-btn:active,
+  .bar-btn:active,
+  .btn-accent:active,
+  .theme-toggle button:active {
+    transform: none;
+  }
+}
+
+/* ---------- Akcje w nagłówku notatki ---------- */
+
+.topbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn[aria-pressed="true"] {
+  color: var(--accent-text);
+  background: var(--accent-soft);
+}
+
+/* ---------- Logowanie (tryb Firebase) ---------- */
+
+.gate {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 70dvh;
+  justify-content: center;
+}
+
+.gate-logo {
+  margin-bottom: 18px;
+}
+
+.gate-text {
+  font-size: 15px;
+  max-width: 34ch;
+}
+
+.gate-detail {
+  font-size: 13px;
+}
+
+.gate-btn {
+  align-self: flex-start;
+  padding: 0 22px;
+  margin-top: 8px;
+}
+
+.gate-error {
+  color: var(--grade-again);
+  font-size: 14px;
+}
+
+.home-account {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 32px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+}
+
+.home-account span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-account .text-link {
+  gap: 6px;
+  flex: none;
+}
+
+/* ---------- Nauka na starcie ---------- */
+
+.learn-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.learn-tile:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+.learn-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px;
+  min-height: var(--tap);
+  color: var(--text);
+  border-radius: var(--radius-m);
+}
+
+.learn-icon {
+  color: var(--accent-text);
+  margin-bottom: 8px;
+  display: flex;
+}
+
+.learn-title {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.learn-sub {
+  font-size: 12px;
+}
+
+.learn-tile--due {
+  background: var(--accent-tint-bg);
+  border-color: var(--accent-tint-border);
+}
+
+/* ---------- Spis treści, dodatki pod notatką ---------- */
+
+.toc {
+  margin: 20px -2px 0;
+  border-radius: var(--radius-m);
+}
+
+.toc summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 14px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.toc summary::-webkit-details-marker {
+  display: none;
+}
+
+.toc-count {
+  font-size: 13px;
+}
+
+.toc-chevron {
+  margin-left: auto;
+  color: var(--chevron);
+  transition: transform 0.15s ease;
+}
+
+.toc[open] .toc-chevron {
+  transform: rotate(90deg);
+}
+
+.toc ol {
+  list-style: none;
+  margin: 0;
+  padding: 0 14px 8px;
+}
+
+.toc li + li {
+  border-top: 1px solid var(--line);
+}
+
+.toc li a {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap);
+  color: var(--text);
+  font-size: 15px;
+}
+
+/* Nagłówek, do którego przeskoczył spis treści, nie chowa się pod górną krawędzią. */
+.note-body h2 {
+  scroll-margin-top: 20px;
+}
+
+.note-extra {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.note-extra .mini-list {
+  margin: 0;
+  padding: 0 14px;
+  border-radius: var(--radius-m);
+}
+
+.note-cards {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 28px;
+  padding: 14px 16px;
+  color: var(--text);
+  border-radius: var(--radius-m);
+}
+
+.note-cards svg {
+  flex: none;
+  color: var(--accent-text);
+}
+
+.my-note-field {
+  width: 100%;
+  min-height: 96px;
+  padding: 12px 14px;
+  border-radius: var(--radius-m);
+  color: var(--text);
+  font: inherit;
+  font-family: var(--font-read);
+  font-size: 17px;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.my-note-field::placeholder {
+  color: var(--text-muted);
+}
+
+.my-note-field:focus {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 2px;
+}
+
+.my-note-hint {
+  font-size: 12px;
+}
+
+/* Własne zaznaczenia: ciepły kolor, inny niż trafienia z wyszukiwarki. */
+mark.hl-user {
+  background: var(--hl-user-bg);
+  cursor: pointer;
+}
+
+/* Pływające paski nad dolną nawigacją: „Zaznacz” i odtwarzacz czytania. */
+.note-float {
+  position: fixed;
+  z-index: 11;
+  left: 50%;
+  bottom: calc(16px + 60px + 10px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: calc(min(100vw, var(--page-max)) - 32px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.float-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 6px 6px 16px;
+  box-shadow: var(--bar-shadow);
+  pointer-events: auto;
+}
+
+.float-bar[role="group"] {
+  padding-left: 6px;
+}
+
+.float-bar-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.float-btn {
+  padding: 0 16px;
+  flex: none;
+}
+
+.rate-btn {
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Fiszki i egzamin ---------- */
+
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.picker-select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: var(--radius-m);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-muted) 50%), linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 20px) 50%, calc(100% - 15px) 50%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.picker-select option {
+  color: #1C1C1F;
+}
+
+.flashcard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 20px 18px;
+}
+
+.flashcard-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.flashcard-source {
+  display: block;
+  line-height: var(--tap);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 70%;
+}
+
+.flashcard-q.prose {
+  font-family: var(--font-read);
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.flashcard-a {
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.flashcard-show {
+  width: 100%;
+}
+
+.grade-label {
+  margin-top: 4px;
+}
+
+.grade-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.grade-buttons--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grade-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 56px;
+  padding: 6px 4px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--line);
+  background: var(--glass-bg);
+  text-align: center;
+}
+
+.grade-name {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.grade-when {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.grade-0 .grade-name { color: var(--grade-again); }
+.grade-2 .grade-name { color: var(--grade-good); }
+.grade-3 .grade-name { color: var(--accent-text); }
+
+.flashcard--done {
+  align-items: flex-start;
+}
+
+.flashcard-done-title {
+  font-family: var(--font-read);
+  font-weight: 400;
+  font-size: 26px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip--tap {
+  height: var(--tap);
+  min-width: 56px;
+  font-size: 15px;
+}
+
+.exam-groups {
+  padding: 4px 14px;
+  border-radius: var(--radius-m);
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 6px 0;
+  cursor: pointer;
+}
+
+.check-row + .check-row {
+  border-top: 1px solid var(--line);
+}
+
+.check-row {
+  position: relative;
+}
+
+/* Pole wyboru niewidoczne na całym wierszu (duży cel dotyku), kwadracik rysuje .check-box. */
+.check-row input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.check-box {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  border: 1.5px solid var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.check-row input:checked + .check-box {
+  background: var(--accent-text);
+  border-color: var(--accent-text);
+}
+
+.check-row input:checked + .check-box::after {
+  content: "";
+  width: 10px;
+  height: 5px;
+  border-left: 2px solid var(--bg);
+  border-bottom: 2px solid var(--bg);
+  transform: translateY(-1px) rotate(-45deg);
+}
+
+.check-row input:focus-visible + .check-box {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 2px;
+}
+
+.check-row .row-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.check-count {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.sticky-action {
+  position: sticky;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  margin-top: 20px;
+}
+
+.wide-btn {
+  width: 100%;
+  padding: 0 22px;
+}
+
+.btn-accent:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.error-actions .wide-btn {
+  width: auto;
+}
+
+.exam-progress {
+  margin-top: 16px;
+}
+
+/* ---------- Postęp ---------- */
+
+.stat-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.stat-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 12px;
+  border-radius: var(--radius-m);
+}
+
+.stat-label,
+.stat-sub {
+  font-size: 12px;
+}
+
+.stat-value {
+  font-family: var(--font-read);
+  font-size: 28px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.progress-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 14px;
+  border-radius: var(--radius-m);
+}
+
+.progress-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 0 12px;
+}
+
+.progress-row + .progress-row {
+  border-top: 1px solid var(--line);
+}
+
+.progress-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--tap);
+  color: var(--text);
+}
+
+.progress-bar-row {
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.progress-bar-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.progress-row .progress > span {
+  background: var(--subject-text, var(--accent-text));
+}
+
+.progress-review {
+  align-self: flex-start;
+  font-size: 14px;
+}
+
+/* ---------- Mapa powiązań ---------- */
+
+.map-group-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.map-node {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px 14px;
+  border-radius: var(--radius-m);
+}
+
+.map-node-title {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap);
+  color: var(--text);
+  font-family: var(--font-read);
+  font-size: 19px;
+  line-height: 1.15;
+}
+
+.map-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.map-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--tap);
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--subject) 14%, transparent);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.map-none {
+  font-size: 13px;
+}
+
+/* ---------- Moje dopiski ---------- */
+
+.annotation {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 12px 16px 16px;
+  border-radius: var(--radius-m);
+}
+
+.annotation-title {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap);
+  color: var(--text);
+  font-family: var(--font-read);
+  font-size: 20px;
+  line-height: 1.15;
+}
+
+.annotation-sub {
+  font-size: 12px;
+  margin-top: -6px;
+}
+
+.annotation-note {
+  font-family: var(--font-read);
+  font-size: 16px;
+  white-space: pre-wrap;
+}
+
+.annotation-quotes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--font-read);
+  font-size: 15px;
+}
+
+/* ---------- Druk i zapis do PDF ---------- */
+
+@media print {
+  :root,
+  [data-theme] {
+    --bg: #FFFFFF;
+    --text: #000000;
+    --text-muted: #444444;
+    --accent-text: #3B2A8C;
+    --line: #DDDDDD;
+    --glass-bg: transparent;
+    --accent-tint-bg: transparent;
+  }
+
+  .app-bg::before,
+  .app-bg::after,
+  .topbar,
+  .toc,
+  .note-bar,
+  .note-float,
+  .note-cards,
+  .note-extra:not(.my-note),
+  .my-note-hint {
+    display: none !important;
+  }
+
+  .page {
+    max-width: none;
+    padding: 0;
+  }
+
+  .note {
+    padding-bottom: 0;
+  }
+
+  .glass {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+  }
+
+  .note-lead {
+    border: 1px solid #CCCCCC;
+  }
+
+  .my-note:has(.my-note-field:placeholder-shown) {
+    display: none;
+  }
+
+  .my-note-field {
+    border: 1px solid #CCCCCC;
+    resize: none;
+  }
+
+  .prose .fig,
+  .prose table,
+  .prose .card,
+  .prose .step {
+    break-inside: avoid;
+  }
+
+  .prose h2 {
+    break-after: avoid;
+  }
+}
+
+/* ---------- Przełącznik działu nauki ---------- */
+
+.scope-switch {
+  display: flex;
+  padding: 3px;
+  margin-top: 18px;
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.scope-switch button {
+  flex: 1;
+  min-width: 0;
+  min-height: 38px;
+  padding: 0 10px;
+  border-radius: var(--radius-pill);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  position: relative;
+}
+
+/* 38 px przycisk w 44 px polu dotyku (3 px ramki dookoła), jak .theme-toggle. */
+.scope-switch button::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+}
+
+.scope-switch button[aria-pressed="true"] {
+  background: var(--toggle-active-bg);
+  box-shadow: var(--toggle-active-shadow);
+  color: var(--accent-text);
+}
+
+.home-block .scope-switch {
+  margin-top: 0;
+}
+
+/* ---------- Pojęcie na teraz ---------- */
+
+.term-now {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 18px 12px;
+  border-radius: 20px;
+}
+
+.term-now-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: -6px;
+}
+
+.term-now-every {
+  min-height: var(--tap);
+  font-size: 12px;
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 3px;
+}
+
+.term-now-term {
+  font-family: var(--font-read);
+  font-weight: 400;
+  font-size: 26px;
+  line-height: 1.1;
+}
+
+.term-now-def.prose {
+  font-size: 16px;
+}
+
+.term-now-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.term-now-foot a {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  line-height: var(--tap);
+}
+
+.term-now-foot button {
+  flex: none;
+  min-width: var(--tap);
+  justify-content: flex-end;
+}
+
+.term-now-next {
+  font-size: 12px;
+  margin-top: -8px;
+}
+
+.kind-chips {
+  margin-top: 14px;
+}

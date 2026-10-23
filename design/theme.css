@@ -1,0 +1,190 @@
+/* Psycho — motywy Dzień / Noc
+   Wklej/importuj globalnie (np. w main.ts / index.css).
+   Motyw ustawia atrybut na <html>: data-theme="night" | "day". */
+
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&display=swap");
+
+:root {
+  --font-ui: "Geist", system-ui, sans-serif;
+  --font-read: "Newsreader", Georgia, serif;
+
+  --radius-s: 12px;
+  --radius-m: 16px;
+  --radius-l: 22px;
+  --radius-pill: 999px;
+  --tap: 44px;
+  --blur: 20px;
+
+  /* kolory przedmiotów (pastelowe kropki) */
+  --subject-1: #B9A6FF; /* fiolet */
+  --subject-2: #F2C49B; /* brzoskwinia */
+  --subject-3: #9FD3B6; /* mięta */
+  --subject-4: #8FB4E8; /* błękit */
+}
+
+/* ---------- NOC (domyślny) ---------- */
+:root,
+[data-theme="night"] {
+  color-scheme: dark;
+  --bg: #0D0D11;
+  --text: #EEEDF0;
+  --text-muted: #A3A1AA;
+  --text-faint: #8E8C95;
+  --line: rgba(255, 255, 255, 0.07);
+
+  --glass-bg: rgba(255, 255, 255, 0.055);
+  --glass-border: rgba(255, 255, 255, 0.10);
+  --glass-shadow: none;
+  --glass-strong-bg: rgba(30, 30, 36, 0.55); /* pływający pasek na dole notatki */
+
+  --accent: #B9A6FF;          /* pastelowy fiolet */
+  --accent-text: #B9A6FF;     /* akcent użyty jako kolor tekstu */
+  --accent-soft: rgba(185, 166, 255, 0.16);
+  --accent-tint-bg: rgba(185, 166, 255, 0.08);   /* ramka „W skrócie”, „Czytaj dalej” */
+  --accent-tint-border: rgba(185, 166, 255, 0.22);
+  --on-accent: #17112E;
+
+  --glow-1: #B9A6FF; --glow-1-opacity: 0.32;
+  --glow-2: #8FB4E8; --glow-2-opacity: 0.18;
+}
+
+/* ---------- DZIEŃ ---------- */
+[data-theme="day"] {
+  color-scheme: light;
+  --bg: #F3EEE5;              /* ciepły beż */
+  --text: #1C1C1F;
+  --text-muted: #5F5E66;
+  --text-faint: #5F5E66;
+  --line: rgba(28, 28, 31, 0.08);
+
+  --glass-bg: rgba(255, 255, 255, 0.58);
+  --glass-border: rgba(255, 255, 255, 0.95);
+  --glass-shadow: 0 1px 2px rgba(28, 28, 31, 0.04);
+  --glass-strong-bg: rgba(255, 255, 255, 0.6);
+
+  --accent: #CBBEF5;          /* pastelowy fiolet (tła, przyciski) */
+  --accent-text: #5B45B8;     /* ciemniejszy fiolet do tekstu — kontrast */
+  --accent-soft: #EAE4FA;
+  --accent-tint-bg: rgba(234, 228, 250, 0.6);
+  --accent-tint-border: rgba(255, 255, 255, 0.95);
+  --on-accent: #241A4D;
+
+  --glow-1: #CBBEF5; --glow-1-opacity: 0.55;
+  --glow-2: #C9D6FF; --glow-2-opacity: 0.6;
+}
+
+/* ---------- baza ---------- */
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent-text); text-decoration: none; }
+
+/* płynne przejście przy zmianie motywu */
+body, .glass { transition: background-color .3s ease, color .3s ease, border-color .3s ease; }
+
+/* ---------- szkło ---------- */
+.glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(var(--blur));
+  -webkit-backdrop-filter: blur(var(--blur));
+  border-radius: var(--radius-l);
+}
+.glass--accent {
+  background: var(--accent-tint-bg);
+  border-color: var(--accent-tint-border);
+}
+.glass--bar {
+  background: var(--glass-strong-bg);
+  border-radius: 30px;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+/* ---------- rozmyta poświata w tle (2 plamy na ekran) ---------- */
+.app-bg { position: relative; overflow: hidden; min-height: 100dvh; }
+.app-bg::before,
+.app-bg::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(80px);
+}
+.app-bg::before {
+  width: 300px; height: 300px; top: -90px; right: -110px;
+  background: var(--glow-1); opacity: var(--glow-1-opacity);
+}
+.app-bg::after {
+  width: 260px; height: 260px; top: 45%; left: -120px;
+  background: var(--glow-2); opacity: var(--glow-2-opacity);
+}
+
+/* ---------- typografia ---------- */
+.title-xl {
+  font-family: var(--font-read);
+  font-weight: 400;
+  font-size: 40px;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  margin: 0;
+}
+.title-xl em { color: var(--accent-text); font-style: italic; }
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+.muted { color: var(--text-muted); }
+.prose {
+  font-family: var(--font-read);
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+/* ---------- elementy ---------- */
+.icon-btn {
+  width: var(--tap); height: var(--tap);
+  border-radius: var(--radius-pill);
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.chip {
+  height: 36px; padding: 0 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  color: var(--text-muted);
+  background: transparent;
+  font: inherit; font-size: 14px;
+}
+.chip[aria-pressed="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent-tint-border);
+  color: var(--accent-text);
+}
+.btn-accent {
+  height: var(--tap);
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600; font-size: 14px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border: 0;
+}
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.progress { height: 4px; border-radius: 2px; background: var(--line); }
+.progress > span { display: block; height: 100%; border-radius: inherit; background: var(--accent-text); }
+
+@media (prefers-reduced-motion: reduce) {
+  body, .glass { transition: none; }
+}
