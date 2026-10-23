@@ -1997,6 +1997,22 @@ mark.hl-user {
   font-size: 15px;
 }
 
+.annotation-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.annotation-row > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.annotation-delete {
+  flex: none;
+  color: var(--text-muted);
+}
+
 /* ---------- Druk i zapis do PDF ---------- */
 
 @media print {
