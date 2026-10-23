@@ -1,0 +1,56 @@
+name: Deploy Firebase
+
+# Po zielonych testach na main buduje wersję z logowaniem (bez notatek) i wysyła
+# stronę oraz reguły Firestore do projektu psycho-b354b (https://psycho-b354b.web.app).
+# Notatek ten workflow nie dotyka — wysyła je `npm run wyslij-notatki` z prywatnego repo.
+#
+# Sekrety repo (Settings -> Secrets and variables -> Actions):
+#   FIREBASE_SERVICE_ACCOUNT — cały plik JSON klucza konta usługi do deployu,
+#   VITE_FIREBASE_API_KEY, VITE_FIREBASE_APP_ID — wartości z `.env.firebase`.
+on:
+  workflow_run:
+    workflows: [Testy]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-firebase
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+      VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+      VITE_FIREBASE_AUTH_DOMAIN: psycho-b354b.firebaseapp.com
+      VITE_FIREBASE_PROJECT_ID: psycho-b354b
+      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+    steps:
+      - name: Sprawdź sekrety
+        run: |
+          for s in FIREBASE_SERVICE_ACCOUNT VITE_FIREBASE_API_KEY VITE_FIREBASE_APP_ID; do
+            [ -n "${!s}" ] || { echo "::error::Brak sekretu $s (Settings -> Secrets and variables -> Actions)"; exit 1; }
+          done
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      # Strażnik prywatności potrzebuje notatek do porównania — w publicznym repo są przykładowe.
+      - run: '[ -d content ] || cp -R przyklad/content content'
+      - run: npm ci
+      - run: npm run test:bez-notatek
+      - run: npm run build:firebase
+      - name: Klucz konta usługi
+        run: |
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/klucz.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/klucz.json" >> "$GITHUB_ENV"
+      - run: npx --yes firebase-tools deploy --only hosting,firestore:rules --project psycho-b354b --non-interactive
+      - if: always()
+        run: rm -f "$RUNNER_TEMP/klucz.json"
