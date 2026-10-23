@@ -387,6 +387,34 @@ test.describe('Notatka: dodatki', () => {
     await expect(page.locator('mark.hl-user')).toHaveCount(0)
   })
 
+  test('w dopiskach kosz usuwa zaznaczenie i dopisek', async ({ page }) => {
+    const t = topics[0]
+    await open(page, t.path)
+    await page.getByRole('textbox', { name: 'Mój dopisek' }).fill('Do usunięcia')
+    await expect(page.locator('.my-note-hint')).toHaveText('Zapisano')
+    await page.evaluate(() => {
+      const text = document.querySelector('.note-body p, .note-lead p').firstChild
+      const r = document.createRange()
+      r.setStart(text, 0)
+      r.setEnd(text, Math.min(20, text.nodeValue.length))
+      getSelection().removeAllRanges()
+      getSelection().addRange(r)
+    })
+    await page.getByRole('button', { name: 'Zaznacz' }).click()
+    await expect(page.locator('mark.hl-user')).not.toHaveCount(0)
+
+    await open(page, 'dopiski')
+    await page.getByRole('button', { name: 'Usuń zaznaczenie' }).click()
+    await expect(page.locator('.annotation-quotes')).toHaveCount(0)
+    await page.getByRole('button', { name: 'Usuń dopisek' }).click()
+    await expect(page.locator('.annotation')).toHaveCount(0)
+    await expect(page.getByText('Na razie nic tu nie ma.')).toBeVisible()
+
+    await open(page, t.path)
+    await expect(page.locator('mark.hl-user')).toHaveCount(0)
+    await expect(page.getByRole('textbox', { name: 'Mój dopisek' })).toHaveValue('')
+  })
+
   test('dopisek zapisuje się sam i zostaje po odświeżeniu', async ({ page }) => {
     const t = topics[0]
     await open(page, t.path)
