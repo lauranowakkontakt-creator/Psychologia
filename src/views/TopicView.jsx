@@ -122,30 +122,34 @@ export function TopicView({ topic, highlight }) {
         {meta && <p className="muted note-meta">{meta}</p>}
       </header>
 
-      <Toc headings={headings} />
-
-      <div ref={bodyRef} key={hlKey} onClick={onBodyClick}>
-        {leadHtml && (
-          <aside className="glass glass--accent note-lead" aria-label="W skrócie">
-            <p className="note-lead-label" aria-hidden="true">W skrócie</p>
-            <div className="prose" dangerouslySetInnerHTML={{ __html: leadHtml }} />
-          </aside>
-        )}
-        {restHtml && <div className="prose note-body" dangerouslySetInnerHTML={{ __html: restHtml }} />}
+      <div className="note-side">
+        <Toc headings={headings} />
       </div>
 
-      {cardCount > 0 && (
-        <a className="glass note-cards" href={toHash(REVIEW_PATH, topic.path)}>
-          <CardsIcon />
-          <span className="mini-text">
-            <span className="mini-title">Powtórz fiszki z tej notatki</span>
-            <span className="mini-sub">{countLabel(cardCount, CARD_FORMS)} z „Szybkiej powtórki”</span>
-          </span>
-        </a>
-      )}
+      <div className="note-main">
+        <div ref={bodyRef} key={hlKey} onClick={onBodyClick}>
+          {leadHtml && (
+            <aside className="glass glass--accent note-lead" aria-label="W skrócie">
+              <p className="note-lead-label" aria-hidden="true">W skrócie</p>
+              <div className="prose" dangerouslySetInnerHTML={{ __html: leadHtml }} />
+            </aside>
+          )}
+          {restHtml && <div className="prose note-body" dangerouslySetInnerHTML={{ __html: restHtml }} />}
+        </div>
 
-      <Backlinks topics={related} />
-      <MyNote key={topic.path} text={noteText(notes, topic.path)} onSave={saveNote} />
+        {cardCount > 0 && (
+          <a className="glass note-cards" href={toHash(REVIEW_PATH, topic.path)}>
+            <CardsIcon />
+            <span className="mini-text">
+              <span className="mini-title">Powtórz fiszki z tej notatki</span>
+              <span className="mini-sub">{countLabel(cardCount, CARD_FORMS)} z „Szybkiej powtórki”</span>
+            </span>
+          </a>
+        )}
+
+        <Backlinks topics={related} />
+        <MyNote key={topic.path} text={noteText(notes, topic.path)} onSave={saveNote} />
+      </div>
 
       <div className="note-float">
         {selection.text && !activeMark && (

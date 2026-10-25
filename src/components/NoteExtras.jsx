@@ -6,15 +6,20 @@ import { ChevronIcon, TocIcon } from './Icon.jsx'
 // Dodatki pod i nad treścią notatki: spis treści, „Wspominają tę notatkę”,
 // fiszki z notatki i własny dopisek.
 
+// Na komputerze spis stoi z boku notatki, więc od razu jest rozwinięty
+// (ta sama szerokość co w src/styles.css, „Komputer”).
+const wideScreen = () => window.matchMedia?.('(min-width: 1024px)').matches || false
+
 // headings: [{ id, text }] — nagłówki ## z treści (ID nadaje TopicView).
 export function Toc({ headings }) {
+  const [open] = useState(wideScreen)
   if (headings.length < 3) return null
   const go = (id) => (e) => {
     e.preventDefault()
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
   return (
-    <details className="glass toc">
+    <details className="glass toc" open={open || undefined}>
       <summary>
         <TocIcon />
         <span>Spis treści</span>
