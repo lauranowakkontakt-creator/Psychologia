@@ -2013,6 +2013,129 @@ mark.hl-user {
   color: var(--text-muted);
 }
 
+/* ---------- Komputer ---------- */
+
+/* Telefon: strona główna w jednej kolumnie, w kolejności z makiet — „Nauka” przed
+   listami. Na komputerze te same klocki stoją w dwóch kolumnach (.home-main, .home-side). */
+.home {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-main,
+.home-side {
+  display: contents;
+}
+
+.home-learn {
+  order: 1;
+}
+
+.home-list,
+.home-account {
+  order: 2;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --page-max: 760px;
+    --gutter: 40px;
+  }
+
+  .page:has(> .home),
+  .page:has(> .note) {
+    --page-max: 1120px;
+  }
+
+  .page {
+    padding-top: 28px;
+  }
+
+  /* Start: notatki po lewej, „Nauka” po prawej (przyklejona przy przewijaniu). */
+  .home {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+    column-gap: 56px;
+    align-items: start;
+  }
+
+  .home-top {
+    grid-column: 1 / -1;
+  }
+
+  .home-main,
+  .home-side {
+    display: block;
+  }
+
+  .home-side {
+    position: sticky;
+    top: 24px;
+  }
+
+  .home-side .home-learn {
+    margin-top: 28px;
+  }
+
+  .home-hello .title-xl {
+    font-size: 52px;
+  }
+
+  /* Notatka: tekst w kolumnie do czytania, spis treści z boku. */
+  .note {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .note-title {
+    font-size: 46px;
+  }
+
+  .note:has(.toc) {
+    --side: 260px;
+    --side-gap: 56px;
+    max-width: none;
+    display: grid;
+    grid-template-columns: var(--side) minmax(0, 720px);
+    grid-template-areas:
+      "bar  bar"
+      "side head"
+      "side main";
+    column-gap: var(--side-gap);
+    justify-content: center;
+  }
+
+  .note:has(.toc) > .topbar { grid-area: bar; }
+  .note:has(.toc) > .note-head { grid-area: head; }
+  .note:has(.toc) > .note-side { grid-area: side; }
+  .note:has(.toc) > .note-main { grid-area: main; }
+
+  .note-side .toc {
+    position: sticky;
+    top: 24px;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    margin-top: 22px;
+  }
+
+  .note-side .toc li a {
+    font-size: 14px;
+    line-height: 1.3;
+    padding: 6px 0;
+  }
+
+  /* Paski na dole notatki – szerokość i środek kolumny z tekstem. */
+  .note .note-bar,
+  .note .note-float {
+    width: min(720px, 100vw - 2 * var(--gutter));
+  }
+
+  .note:has(.toc) .note-bar,
+  .note:has(.toc) .note-float {
+    left: calc(50% + (var(--side) + var(--side-gap)) / 2);
+  }
+}
+
 /* ---------- Druk i zapis do PDF ---------- */
 
 @media print {

@@ -539,3 +539,31 @@ test.describe('Nauka osobno dla działów', () => {
     await expect(page.locator('.flashcard-a')).not.toBeEmpty()
   })
 })
+
+// ---------- Komputer: szeroki ekran ----------
+
+test.describe('Komputer', () => {
+  test.use({ viewport: { width: 1440, height: 900 }, isMobile: false, hasTouch: false })
+
+  test('start w dwóch kolumnach: notatki po lewej, „Nauka” po prawej', async ({ page }) => {
+    await open(page)
+    const main = await page.locator('.home-main').boundingBox()
+    const side = await page.locator('.home-side').boundingBox()
+    expect(side.x).toBeGreaterThan(main.x + main.width)
+    expect(Math.abs(side.y - main.y)).toBeLessThan(40)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1440)
+  })
+
+  test('notatka: spis treści rozwinięty z boku i zostaje przy przewijaniu', async ({ page }) => {
+    const long = topics.find((t) => (t.body.match(/^## /gm) || []).length >= 3)
+    test.skip(!long, 'brak notatki z co najmniej 3 nagłówkami')
+    await open(page, long.path)
+    const toc = page.locator('.note-side .toc')
+    await expect(toc).toHaveAttribute('open', '')
+    await expect(toc.locator('li a').first()).toBeVisible()
+    const tocBox = await toc.boundingBox()
+    const body = await page.locator('.note-main').boundingBox()
+    expect(tocBox.x + tocBox.width).toBeLessThan(body.x)
+    await expect(toc).toHaveCSS('position', 'sticky')
+  })
+})

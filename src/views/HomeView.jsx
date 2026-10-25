@@ -77,9 +77,10 @@ export function HomeView({ root }) {
         <ThemeToggle />
       </header>
 
-      <div className="home-hello">
-        <p className="muted">{user.guest ? hello : `${hello}, ${user.name}`}</p>
-        <h1 className="title-xl">Twoje <em>notatki</em></h1>
+      <div className="home-main">
+        <div className="home-hello">
+          <p className="muted">{user.guest ? hello : `${hello}, ${user.name}`}</p>
+          <h1 className="title-xl">Twoje <em>notatki</em></h1>
       </div>
 
       <button type="button" className="glass search-field search-field--fake" onClick={openSearch}>
@@ -100,21 +101,6 @@ export function HomeView({ root }) {
       </nav>
 
       {currentTopic && <ContinueCard topic={currentTopic} progress={current.progress} subject={subjectOf(currentTopic)} number={siblings(tree, currentTopic).number} />}
-
-      <nav className="home-block" aria-labelledby="learn-label">
-        <h2 className="block-label" id="learn-label">Nauka</h2>
-        <ScopeSwitch sections={root.sections} value={scope} onChange={setScope} />
-        <TermNow definitions={scopedCards.filter((c) => c.kind === 'definicja')} />
-        <div className="learn-grid">
-          {learning.map(({ path, icon: LearnIcon, title, sub }) => (
-            <a key={path} className={`glass learn-tile${path === REVIEW_PATH && stats.due ? ' learn-tile--due' : ''}`} href={toHash(path)}>
-              <span className="learn-icon"><LearnIcon /></span>
-              <span className="learn-title">{title}</span>
-              <span className="muted learn-sub">{sub}</span>
-            </a>
-          ))}
-        </div>
-      </nav>
 
       <MiniList
         label="Ostatnio otwierane"
@@ -140,6 +126,24 @@ export function HomeView({ root }) {
           </button>
         </footer>
       )}
+      </div>
+
+      <div className="home-side">
+        <nav className="home-block home-learn" aria-labelledby="learn-label">
+          <h2 className="block-label" id="learn-label">Nauka</h2>
+          <ScopeSwitch sections={root.sections} value={scope} onChange={setScope} />
+          <TermNow definitions={scopedCards.filter((c) => c.kind === 'definicja')} />
+          <div className="learn-grid">
+            {learning.map(({ path, icon: LearnIcon, title, sub }) => (
+              <a key={path} className={`glass learn-tile${path === REVIEW_PATH && stats.due ? ' learn-tile--due' : ''}`} href={toHash(path)}>
+                <span className="learn-icon"><LearnIcon /></span>
+                <span className="learn-title">{title}</span>
+                <span className="muted learn-sub">{sub}</span>
+              </a>
+            ))}
+          </div>
+        </nav>
+      </div>
     </div>
   )
 }
@@ -198,7 +202,7 @@ function ContinueCard({ topic, progress = 0, subject, number }) {
 function MiniList({ label, items, subjectOf }) {
   if (!items.length) return null
   return (
-    <section className="home-block">
+    <section className="home-block home-list">
       <h2 className="block-label">{label}</h2>
       <ul className="mini-list">
         {items.map(({ topic, aside }) => {
