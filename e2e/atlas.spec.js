@@ -17,6 +17,9 @@ async function openAtlas(page) {
 }
 
 test.describe('Atlas mózgu: bot-użytkownik', () => {
+  // Render 3D bez karty graficznej jest wolny, więc te testy idą tylko w jednym silniku (Chromium/Android);
+  // ekran atlasu w ramce sprawdzają osobno testy telefonu i dostępności w obu.
+  test.skip(({ browserName }) => browserName === 'webkit', 'ciężki render 3D: tylko Chromium')
   // Render 3D w testach jest programowy (bez GPU) i przy pełnym przebiegu wielu testów naraz bywa wolny.
   test.setTimeout(180_000)
   test('każde zaburzenie: opis obszarów, kontekst po kliknięciu obszaru i szlaków', async ({ page }) => {
