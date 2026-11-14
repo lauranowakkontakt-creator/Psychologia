@@ -65,6 +65,7 @@ export const ExamIcon = lucide(ClipboardCheck, 22)
 export const ProgressIcon = lucide(ChartColumn, 22)
 export const MapIcon = lucide(Network, 22)
 export const NotesIcon = lucide(NotebookPen, 22)
+export const BrainIcon = lucide(Brain, 22)
 
 // Ikony sekcji, wybierane w `_sekcja.md` polem `ikona:`.
 // Żeby dodać nową: znajdź ją na lucide.dev/icons, dopisz import i nazwę tutaj.

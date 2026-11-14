@@ -1379,6 +1379,19 @@ mark {
   flex: none;
 }
 
+/* ---------- Atlas mózgu (osobna strona w ramce, motyw przekazywany z aplikacji) ---------- */
+
+.atlas-frame {
+  display: block;
+  width: 100%;
+  height: calc(100dvh - 150px);
+  min-height: 560px;
+  margin-top: 12px;
+  border: 0;
+  border-radius: var(--radius-m);
+  background: transparent;
+}
+
 /* ---------- Nauka na starcie ---------- */
 
 .learn-grid {

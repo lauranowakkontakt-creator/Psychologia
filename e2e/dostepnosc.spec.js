@@ -14,6 +14,7 @@ const SCREENS = [
   ['egzamin', 'egzamin'],
   ['postęp', 'postep'],
   ['mapa powiązań', 'mapa'],
+  ['atlas mózgu', 'atlas'],
   ['dopiski', 'dopiski'],
 ]
 

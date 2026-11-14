@@ -5,7 +5,7 @@
 //   #/studia                   sekcja
 //   #/studia/temat-1?q=lęk     temat, z podświetleniem słowa z wyszukiwarki
 //   #/szukaj?q=lęk             wyniki wyszukiwania
-//   #/powtorki, #/egzamin, #/postep, #/mapa, #/dopiski   ekrany nauki
+//   #/powtorki, #/egzamin, #/postep, #/mapa, #/dopiski, #/atlas   ekrany nauki
 
 export const SEARCH_PATH = 'szukaj'
 export const REVIEW_PATH = 'powtorki'
@@ -13,10 +13,11 @@ export const EXAM_PATH = 'egzamin'
 export const PROGRESS_PATH = 'postep'
 export const MAP_PATH = 'mapa'
 export const NOTES_PATH = 'dopiski'
+export const ATLAS_PATH = 'atlas'
 
 // Adresy ekranów, które nie są notatkami ani sekcjami. Folder w content/
 // nie może się tak nazywać (pilnuje tego test).
-export const APP_PATHS = [SEARCH_PATH, REVIEW_PATH, EXAM_PATH, PROGRESS_PATH, MAP_PATH, NOTES_PATH]
+export const APP_PATHS = [SEARCH_PATH, REVIEW_PATH, EXAM_PATH, PROGRESS_PATH, MAP_PATH, NOTES_PATH, ATLAS_PATH]
 
 export function parseHash(hash) {
   const raw = (hash || '').replace(/^#/, '')

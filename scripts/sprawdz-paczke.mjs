@@ -21,17 +21,22 @@ try {
     },
   })
 
-  const bundle = filesIn(out).map((f) => readFileSync(f, 'utf8')).join('\n')
+  const files = filesIn(out)
+  const bundle = files.map((f) => readFileSync(f, 'utf8')).join('\n')
+  // Atlas mózgu (public/atlas) to osobna, publiczna strona z własnymi podręcznikowymi nazwami
+  // (np. kategoria ICD-11 „Zaburzenia nastroju”). Krótkie tytuły notatek pasowałyby tam przypadkiem,
+  // więc tytuły sprawdzamy w reszcie paczki; długie linie treści – wszędzie.
+  const bundleNoAtlas = files.filter((f) => !f.includes('/atlas/')).map((f) => readFileSync(f, 'utf8')).join('\n')
 
   // Próbki z każdej notatki: tytuł (dłuższy niż 12 znaków) i najdłuższa linia treści.
   const leaks = []
   for (const [path, raw] of Object.entries(loadContentFiles())) {
     const { meta, body } = parseFrontmatter(raw)
     const longest = body.split('\n').map((l) => l.trim()).sort((a, b) => b.length - a.length)[0] || ''
-    const samples = [longest.slice(0, 80)]
-    if ((meta.tytul || '').length > 12) samples.push(meta.tytul)
-    for (const s of samples) {
-      if (s.length > 12 && bundle.includes(s)) leaks.push(`${path}: „${s.slice(0, 60)}…”`)
+    const checks = [[longest.slice(0, 80), bundle]]
+    if ((meta.tytul || '').length > 12) checks.push([meta.tytul, bundleNoAtlas])
+    for (const [s, where] of checks) {
+      if (s.length > 12 && where.includes(s)) leaks.push(`${path}: „${s.slice(0, 60)}…”`)
     }
   }
   if (bundle.includes('content/studia') || bundle.includes('content/kursy')) leaks.push('ścieżki plików z content/ (daty dodania?)')

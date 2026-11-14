@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atlas mózgu i zaburzeń psychicznych</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<script>
+/* Motyw jak w aplikacji Psycho: ?theme=night|day albo wiadomość z aplikacji; samodzielnie – według systemu. */
+(function(){
+  try{if(window.top!==window.self)document.documentElement.classList.add("embedded");}catch(e){document.documentElement.classList.add("embedded");}
+  try{var t=new URLSearchParams(location.search).get("theme");if(t==="day"||t==="night")document.documentElement.setAttribute("data-theme",t);}catch(e){}
+  window.addEventListener("message",function(e){if(e.origin!==location.origin)return;var d=e.data;if(d&&d.type==="psycho-theme"&&(d.theme==="day"||d.theme==="night"))document.documentElement.setAttribute("data-theme",d.theme);});
+})();
+</script>
+<style>
+/* Układ: scena 3D (widok, warstwy, przekrój, szlaki) z panelem szczegółów obok; pod spodem zakładki z wiedzą. */
+:root,[data-theme="night"]{
+  color-scheme:dark;
+  --bg:#0D0D11; --surface:#17171d; --surface2:#1f1f27; --surface3:#2a2a34; --ink:#EEEDF0; --muted:#A8A6B0; --line:rgba(255,255,255,.11);
+  --accent:#B9A6FF; --accent-ink:#17112E; --accent-soft:rgba(185,166,255,.16);
+  --sel:#ffd23f; --up:#ff7a59; --down:#5aa2ff; --neutral:#a3a8b3;
+  --stage:radial-gradient(ellipse at 50% 38%,#2a2640 0%,#17171d 62%);
+  --da:#ff4d8d; --sht:#9b6bff; --na:#ff9f1c; --ach:#2fd07a; --glu:#ffd23f; --gaba:#2ec4ff;
+  --shadow:none; --stroke:#8f8ca0; --cell1:#6d5bd0; --cell2:#3c7dd9; --cell3:#d9a441; --cell4:#3fb79a;
+  --ev-strong:#5bd68a; --ev-mid:#ffb84d;
+  --font-ui:"Geist",system-ui,-apple-system,"Segoe UI",sans-serif; --font-read:"Newsreader",Georgia,serif;
+}
+[data-theme="day"]{
+  color-scheme:light;
+  --bg:#F3EEE5; --surface:#fffdf9; --surface2:#f6f1e8; --surface3:#ebe4d6; --ink:#1C1C1F; --muted:#5F5E66; --line:rgba(28,28,31,.14);
+  --accent:#5B45B8; --accent-ink:#ffffff; --accent-soft:#EAE4FA;
+  --sel:#b8860b; --up:#9a3412; --down:#1d4ed8; --neutral:#6b6f7a;
+  --stage:radial-gradient(ellipse at 50% 38%,#ffffff 0%,#ece5f6 70%);
+  --da:#d81b60; --sht:#6d3fe0; --na:#c76a00; --ach:#12894a; --glu:#a87b00; --gaba:#0a82b8;
+  --shadow:0 1px 2px rgba(28,28,31,.05); --stroke:#6b6878; --cell1:#7a68d9; --cell2:#4a86db; --cell3:#d8982a; --cell4:#2fae8e;
+  --ev-strong:#1e7f43; --ev-mid:#9a5b00;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme]){
+    color-scheme:light;
+    --bg:#F3EEE5; --surface:#fffdf9; --surface2:#f6f1e8; --surface3:#ebe4d6; --ink:#1C1C1F; --muted:#5F5E66; --line:rgba(28,28,31,.14);
+    --accent:#5B45B8; --accent-ink:#ffffff; --accent-soft:#EAE4FA;
+    --sel:#b8860b; --up:#9a3412; --down:#1d4ed8; --neutral:#6b6f7a;
+    --stage:radial-gradient(ellipse at 50% 38%,#ffffff 0%,#ece5f6 70%);
+    --da:#d81b60; --sht:#6d3fe0; --na:#c76a00; --ach:#12894a; --glu:#a87b00; --gaba:#0a82b8;
+    --shadow:0 1px 2px rgba(28,28,31,.05); --stroke:#6b6878; --cell1:#7a68d9; --cell2:#4a86db; --cell3:#d8982a; --cell4:#2fae8e;
+    --ev-strong:#1e7f43; --ev-mid:#9a5b00;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1240px;margin:0 auto;padding:18px 16px 56px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 16px;margin-bottom:14px}
+h1{font-family:var(--font-read);font-weight:400;font-size:clamp(26px,5vw,38px);letter-spacing:-.02em;line-height:1.08;margin:0;text-wrap:balance}
+h1 em{color:var(--accent);font-style:italic}
+.sub{color:var(--muted);margin:6px 0 0;max-width:62ch;font-size:14.5px}
+.edu{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:5px 12px;color:var(--muted);background:var(--surface)}
+.embedded header.top>div{display:none}
+.embedded header.top{justify-content:flex-end;margin-bottom:8px}
+.embedded .wrap{padding-top:8px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+button{font-family:inherit}
+button:focus-visible,input:focus-visible,[tabindex]:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ----- scena ----- */
+.atlas{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(330px,1fr);gap:14px;align-items:start}
+@media (max-width:900px){.atlas{grid-template-columns:minmax(0,1fr)}}
+.stage{padding:10px;position:sticky;top:10px}
+@media (max-width:900px){.stage{position:static}}
+.stage-top{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface2);flex-wrap:nowrap}
+.seg button{font-size:13px;border:0;background:transparent;color:var(--ink);padding:8px 11px;cursor:pointer;min-height:38px;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.viewscroll{overflow-x:auto;scrollbar-width:none;flex:1}
+.viewscroll::-webkit-scrollbar{display:none}
+.tbtn{font-size:13px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);color:var(--ink);padding:7px 12px;cursor:pointer;min-height:38px;display:inline-flex;align-items:center;gap:6px;line-height:1.2}
+.tbtn[hidden]{display:none}
+.tbtn:hover{border-color:var(--accent)}
+.tbtn[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);font-weight:600}
+.tbtn .dot{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 0 2px color-mix(in srgb,currentColor 0%,transparent)}
+.tbtn[aria-pressed="true"] .dot{box-shadow:0 0 8px 1px currentColor}
+@media (pointer:coarse){.seg button,.tbtn{min-height:44px}}
+.viewer{position:relative;border-radius:14px;overflow:hidden;background:var(--stage);border:1px solid var(--line)}
+#gl{display:block;width:100%;touch-action:none;cursor:grab}
+.hint{position:absolute;left:10px;bottom:8px;font-size:11.5px;color:var(--muted);pointer-events:none;text-shadow:0 0 6px var(--surface)}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12px;padding:5px 9px;border-radius:8px;max-width:300px;transform:translate(-50%,-135%);opacity:0;transition:opacity .1s;z-index:4;white-space:normal}
+#labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.lbl{position:absolute;left:0;top:0;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--surface) 90%,transparent);border:1.5px solid var(--c,var(--sel));color:var(--ink);white-space:nowrap;will-change:transform;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.lbl::before{content:"";position:absolute;left:50%;top:100%;width:1.5px;height:9px;background:var(--c,var(--sel))}
+.lbl::after{content:"";position:absolute;left:calc(50% - 3.5px);top:calc(100% + 8px);width:8px;height:8px;border-radius:50%;background:var(--c,var(--sel))}
+.scale{position:absolute;right:10px;top:10px;background:color-mix(in srgb,var(--surface) 90%,transparent);border:1px solid var(--line);border-radius:12px;padding:7px 10px;font-size:11px;color:var(--muted);width:200px;backdrop-filter:blur(8px)}
+.scale .grad{height:9px;border-radius:5px;background:linear-gradient(90deg,#2a66eb,#f0f0f4,#eb4a2e);margin:5px 0 2px}
+.scale .ends{display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.legend{position:absolute;left:10px;top:10px;display:flex;flex-direction:column;gap:3px;font-size:11.5px;color:var(--ink);background:color-mix(in srgb,var(--surface) 82%,transparent);border:1px solid var(--line);border-radius:12px;padding:7px 10px;backdrop-filter:blur(8px)}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:4px;margin-right:6px;vertical-align:-1px}
+.legend[hidden]{display:none}
+@media (max-width:520px){.legend{display:none}.scale{width:165px}}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px 16px;margin-top:10px}
+.cgroup{min-width:0}
+.cgroup h2{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0 0 6px}
+.cgroup.wide{grid-column:1/-1}
+.row-wrap{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.sec-extra{display:flex;gap:8px;align-items:center;margin-top:8px}
+.sec-extra[hidden]{display:none}
+input[type=range]{flex:1;min-width:0;accent-color:var(--accent);height:30px}
+.sec-val{font-size:12px;color:var(--muted);min-width:70px;text-align:right;font-variant-numeric:tabular-nums}
+.pwnote{font-size:12.5px;color:var(--muted);margin:8px 0 0}
+
+/* ----- panel ----- */
+.panel{padding:16px 18px 18px;max-height:calc(100vh - 20px);overflow:auto;position:sticky;top:10px}
+@media (max-width:900px){.panel{position:static;max-height:none}}
+.panel h2{font-family:var(--font-read);font-weight:400;font-size:25px;line-height:1.15;margin:0 0 2px;text-wrap:balance;letter-spacing:-.01em}
+.latin{color:var(--muted);font-style:italic;font-size:13px;margin:0 0 10px}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.pill{font-size:12px;border-radius:999px;padding:2px 10px;background:var(--surface2);border:1px solid var(--line)}
+.pill.ev-silne{border-color:var(--ev-strong);color:var(--ink)} .pill.ev-umiarkowane{border-color:var(--ev-mid);color:var(--ink)} .pill.ev-wstępne{border-color:var(--muted);color:var(--ink)}
+.panel h3{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px;font-weight:600}
+.panel ul{margin:0;padding-left:18px}
+.panel li{margin:3px 0}
+.kicker{font-size:12px;color:var(--accent);margin:0 0 4px;font-weight:600}
+.enote{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:7px 11px;font-size:13.5px;margin:0 0 8px}
+.rows{display:grid;gap:6px}
+.row{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;padding:9px 11px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);cursor:pointer;text-align:left;font:inherit;color:inherit;min-height:44px}
+.row:hover{border-color:var(--accent)}
+.row.on{border-color:var(--c,var(--accent));box-shadow:inset 3px 0 0 var(--c,var(--accent))}
+.row b{font-weight:600}
+.row small{grid-column:1/-1;color:var(--muted);font-size:12.5px}
+.tag{font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:7px;white-space:nowrap;align-self:start}
+.tag.up{color:var(--up);background:color-mix(in srgb,var(--up) 14%,var(--surface2))}
+.tag.down{color:var(--down);background:color-mix(in srgb,var(--down) 14%,var(--surface2))}
+.tag.other{color:var(--muted);background:var(--surface3)}
+.tag.pw{color:var(--ink);background:color-mix(in srgb,var(--c) 20%,var(--surface2));border:1px solid var(--c)}
+.linklist{display:flex;flex-wrap:wrap;gap:6px}
+.linklist button,.chip{font-size:12.5px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:999px;padding:5px 12px;cursor:pointer;min-height:34px}
+.linklist button:hover,.chip:hover{border-color:var(--accent)}
+.chip .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:var(--c)}
+.src{font-size:12.5px;color:var(--muted)}
+.src a{color:var(--accent)}
+.bar{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 46px;gap:8px;align-items:center;font-size:12.5px;margin:3px 0}
+.bar .bl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .bt{position:relative;height:10px;background:var(--surface3);border-radius:4px}
+.bar .bz{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--muted)}
+.bar .bf{position:absolute;top:0;bottom:0;border-radius:3px}
+.bar .bf.neg{background:#2f6fe0} .bar .bf.pos{background:#e0452d}
+.bar .bv{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.ntcard{border:1px solid var(--c);border-left-width:5px;border-radius:14px;padding:11px 13px;background:color-mix(in srgb,var(--c) 9%,var(--surface2));margin:0 0 10px}
+.ntcard h3{margin:0 0 4px;color:var(--ink);font-size:13px}
+.ntcard p{margin:0;font-size:13.5px}
+
+/* ----- zakładki ----- */
+nav.tabs{display:flex;gap:4px;margin:26px 0 0;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{font-size:14px;background:none;border:0;border-bottom:3px solid transparent;padding:11px 13px;color:var(--muted);cursor:pointer;white-space:nowrap;min-height:44px}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
+.tabpanel{padding:18px 0}
+.tabpanel[hidden]{display:none}
+.lead{max-width:70ch;color:var(--muted);margin:0 0 14px}
+.group{margin-bottom:20px}
+.group h4{font-family:var(--font-read);font-weight:500;font-size:18px;margin:0 0 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.dcard{padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);cursor:pointer;text-align:left;font:inherit;color:inherit;display:flex;flex-direction:column;gap:4px;min-height:44px}
+.dcard:hover,.dcard.active{border-color:var(--accent)}
+.dcard.active{box-shadow:inset 3px 0 0 var(--accent)}
+.dcard .t{font-weight:600}
+.dcard .m{font-size:12.5px;color:var(--muted)}
+.search{font:inherit;font-size:16px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);width:min(380px,100%);margin-bottom:12px}
+.netcard{padding:14px;border:1px solid var(--line);border-left:4px solid var(--c,var(--accent));border-radius:14px;background:var(--surface)}
+.netcard h4{margin:0 0 4px;font-size:15px}
+.netcard p{margin:0 0 10px;color:var(--muted);font-size:14px}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600;background:var(--surface2)}
+tr:last-child td{border-bottom:0}
+td .chip{margin:2px 4px 2px 0}
+.cells{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px;align-items:start}
+@media (max-width:900px){.cells{grid-template-columns:1fr}}
+.neuron{padding:12px}
+.neuron svg{display:block;width:100%;height:auto}
+.neuron text{font-size:11px;fill:var(--ink);font-family:var(--font-ui)}
+.neuron .part{cursor:pointer}
+.neuron .part:hover,.neuron .part:focus-visible{filter:brightness(1.18)}
+.neuron .part.on{filter:drop-shadow(0 0 5px var(--sel))}
+.neuroninfo{margin:10px 2px 0;font-size:13.5px;min-height:3.2em}
+.neuroninfo b{color:var(--accent)}
+.cellcard{padding:11px 13px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.cellcard h5{margin:0;font-size:14.5px}
+.cellcard .w{font-size:12px;color:var(--accent);margin:2px 0 4px}
+.cellcard p{margin:0;font-size:13.5px;color:var(--muted)}
+.cellcard .kind{float:right;font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:0 8px}
+.synapse{padding:12px;margin-top:14px}
+.synapse h4{margin:0 0 4px;font-family:var(--font-read);font-weight:500;font-size:17px}
+.synapse .seg{margin:8px 0;flex-wrap:wrap}
+.synapse svg{display:block;width:100%;height:auto}
+.synapse svg text{font-size:10.5px;fill:var(--ink);font-family:var(--font-ui)}
+.syninfo{font-size:13.5px;margin:6px 0 0}
+.prose{max-width:74ch}
+.prose li{margin:7px 0}
+.srclist li{margin:7px 0;font-size:13.5px}
+.srclist a{color:var(--accent);word-break:break-all}
+pre{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:12px;max-height:340px;overflow:auto}
+.copyrow{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.btn{font-size:14px;background:var(--accent);color:var(--accent-ink);border:0;border-radius:12px;padding:10px 16px;cursor:pointer;min-height:44px;font-weight:600}
+.ok{font-size:13px;color:var(--muted)}
+.nt-dot{animation:ntmove var(--t,3s) ease-in infinite;animation-delay:var(--d,0s);opacity:0}
+@keyframes ntmove{0%{transform:translate(0,0);opacity:0}12%{opacity:1}85%{opacity:1}100%{transform:translate(var(--dx),var(--dy));opacity:0}}
+.pulse{animation:pls 1.8s ease-in-out infinite;animation-delay:var(--d,0s)}
+@keyframes pls{0%,100%{opacity:.45}50%{opacity:1}}
+.resp{transition:opacity .4s}
+@media (prefers-reduced-motion: reduce){.nt-dot{animation:none;opacity:1}.pulse{animation:none}}
+#flat{display:block;width:100%;height:auto}
+#flat[hidden]{display:none}
+.viewer.flat #gl,.viewer.flat #labels{display:none}
+.viewer.flat .hint{display:none}
+#flat text{font-family:var(--font-ui);fill:var(--ink);font-size:9.5px;paint-order:stroke;stroke:var(--surface);stroke-width:2.6px;stroke-linejoin:round;pointer-events:none}
+#flat .big{font-size:11.5px;font-weight:600}
+#flat .fr{cursor:pointer}
+#flat .fr:not(.rib){stroke:var(--stroke);stroke-width:.9}
+#flat .rib:hover{filter:brightness(1.35)}
+#flat .rib.sel{stroke-width:6}
+#flat .fr:hover,#flat .fr:focus-visible{filter:brightness(1.18);stroke-width:2}
+#flat .fr.sel{stroke:var(--sel);stroke-width:3.2;animation:selp 1.3s ease-in-out infinite}
+#flat .arc{fill:none;stroke-linecap:round}
+#flat .flow{fill:none;stroke-linecap:round;stroke-dasharray:5 9;animation:flow .9s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-14}}
+@keyframes selp{0%,100%{filter:brightness(1)}50%{filter:brightness(1.3)}}
+@media (prefers-reduced-motion: reduce){#flat .flow,#flat .fr.sel{animation:none}}
+.flatinfo{margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);font-size:13.5px}
+.flatinfo[hidden]{display:none}
+.flat-how{margin:0 0 6px}
+.flat-lab{margin:8px 0 6px;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
+#flat text.aff{font-size:10.5px;font-weight:700;stroke-width:3.2px}
+#flat text.aff.up{fill:var(--up)}#flat text.aff.down{fill:var(--down)}#flat text.aff.other{fill:var(--accent)}
+.row .mean{grid-column:1/-1;font-size:13px;color:var(--ink);opacity:.92}
+.sw{display:inline-block;width:11px;height:11px;border-radius:4px;margin:0 5px 0 2px;vertical-align:-1px}
+.sw.up{background:#ed5a3d}.sw.down{background:#3880f5}.sw.oth{background:#b875f5}.sw.none{background:#eeeef2;border:1px solid var(--line)}
+.howto{margin:10px 0 0;padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);font-size:13px}
+.ctx{border:1px solid var(--accent);border-radius:14px;padding:10px 12px;margin:0 0 10px;background:var(--accent-soft)}
+.ctxhead{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-bottom:6px}
+.ctxhead b{font-size:14px}
+.ctxhead .chip{margin-left:auto}
+.ctx p{margin:4px 0;font-size:13.5px}
+.nthead{display:flex;gap:10px;align-items:center;justify-content:space-between}
+.nthead h3{margin:0}
+details.more{margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:8px 12px;background:var(--surface2)}
+details.more summary{cursor:pointer;font-size:13.5px;font-weight:600;min-height:32px;display:flex;align-items:center}
+.tbtn.rel{border-color:var(--c,var(--accent));box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 35%,transparent)}
+.tbtn.dim{border-style:dashed;background:transparent}
+.tbtn.dim span:not(.dot){color:var(--muted)!important}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Atlas <em>mózgu</em></h1>
+      <p class="sub">Obracaj mózg palcem lub myszą i dotknij obszaru, żeby zobaczyć, za co odpowiada. Wybierz zaburzenie, sieć albo neuroprzekaźnik, a kolory pokażą, gdzie coś się zmienia i skąd dokąd płynie sygnał.</p>
+    </div>
+    <span class="edu">Moduł edukacyjny · nie służy do diagnozy</span>
+  </header>
+  <section class="atlas">
+    <div class="card stage">
+      <div class="stage-top">
+        <div class="seg" role="group" aria-label="Tryb obrazu" id="dim"><button data-dim="3d" aria-pressed="true">3D</button><button data-dim="2d" aria-pressed="false">2D</button></div>
+        <div class="viewscroll" id="viewscroll"><div class="seg" role="group" aria-label="Widok" id="views"></div></div>
+      </div>
+      <div class="viewer" id="viewer">
+        <canvas id="gl" aria-label="Trójwymiarowy model mózgu"></canvas>
+        <svg id="flat" viewBox="0 0 480 340" role="group" aria-label="Przekrój mózgu 2D: dotknij struktury" hidden></svg>
+        <div id="labels"></div>
+        <div class="legend" id="lobeleg"></div>
+        <div class="scale" id="scale" hidden><div id="scale-label"></div><div class="grad"></div><div class="ends"><span id="scale-min"></span><span>0</span><span id="scale-max"></span></div></div>
+        <div class="hint">przeciągnij: obrót · szczypanie lub kółko: zoom · dotknięcie: szczegóły</div>
+        <div class="tip" id="tip"></div>
+      </div>
+      <div id="flatinfo" class="flatinfo" hidden></div>
+      <div class="controls">
+        <div class="cgroup">
+          <h2>Warstwy</h2>
+          <div class="row-wrap">
+            <button class="tbtn" id="t-glass" aria-pressed="false">Przezroczysta kora</button>
+            <button class="tbtn" id="t-right" aria-pressed="false">Ukryj prawą półkulę</button>
+            <button class="tbtn" id="t-enigma" aria-pressed="true">Mapa ENIGMA</button>
+          </div>
+        </div>
+        <div class="cgroup" id="sec-group">
+          <h2 id="sec-title">Przekrój</h2>
+          <div class="seg" role="group" aria-label="Płaszczyzna przekroju" id="sec-axis">
+            <button data-axis="" aria-pressed="true">Brak</button>
+            <button data-axis="x" aria-pressed="false">Strzałkowy</button>
+            <button data-axis="z" aria-pressed="false">Czołowy</button>
+            <button data-axis="y" aria-pressed="false">Poziomy</button>
+          </div>
+          <div class="sec-extra" id="sec-extra" hidden>
+            <input type="range" id="sec-range" aria-label="Położenie przekroju" min="0" max="100" value="50">
+            <span class="sec-val" id="sec-val"></span>
+            <button class="tbtn" id="sec-flip" aria-label="Odwróć stronę przekroju">Odwróć</button>
+          </div>
+        </div>
+        <div class="cgroup wide">
+          <h2>Szlaki neuroprzekaźników</h2>
+          <div class="row-wrap" id="pw-btns"></div>
+          <p class="pwnote" id="pwnote">Włącz jeden lub kilka, a kora zrobi się przezroczysta: źródło zaświeci, cząsteczki popłyną do celów, a obszary docelowe zabarwią się kolorem przekaźnika.</p>
+        </div>
+      </div>
+    </div>
+    <aside class="card panel" id="panel" aria-live="polite"></aside>
+  </section>
+  <nav class="tabs" role="tablist" id="tabs">
+    <button role="tab" aria-selected="true" data-tab="dis">Zaburzenia</button>
+    <button role="tab" aria-selected="false" data-tab="reg">Obszary mózgu</button>
+    <button role="tab" aria-selected="false" data-tab="net">Sieci i obwody</button>
+    <button role="tab" aria-selected="false" data-tab="cells">Komórki i synapsa</button>
+    <button role="tab" aria-selected="false" data-tab="nt">Neuroprzekaźniki</button>
+    <button role="tab" aria-selected="false" data-tab="drugs">Leki i związki</button>
+    <button role="tab" aria-selected="false" data-tab="read">Jak to czytać · źródła</button>
+    <button role="tab" aria-selected="false" data-tab="json">Dane</button>
+  </nav>
+
+  <section class="tabpanel" id="tab-dis"></section>
+  <section class="tabpanel" id="tab-reg" hidden>
+    <input class="search" id="regsearch" type="search" placeholder="Szukaj obszaru, np. hipokamp, nagroda, pamięć" aria-label="Szukaj obszaru">
+    <div id="reglist"></div>
+  </section>
+  <section class="tabpanel" id="tab-net" hidden>
+    <p class="lead">Współczesna psychiatria biologiczna coraz rzadziej szuka „jednego miejsca” dla zaburzenia. Większość objawów lepiej opisują sieci, czyli obszary, które pracują razem. Dotknij sieci, żeby zaświeciły jej węzły i połączyły się liniami.</p>
+    <div class="grid" id="netlist"></div>
+  </section>
+  <section class="tabpanel" id="tab-cells" hidden>
+    <div class="cells">
+      <div>
+        <div class="card neuron">
+          <svg viewBox="0 0 460 300" role="group" aria-label="Budowa neuronu: dotknij elementu" id="neuronsvg"></svg>
+          <p class="neuroninfo" id="neuroninfo" aria-live="polite">Dotknij części neuronu, żeby zobaczyć, do czego służy.</p>
+        </div>
+        <div class="card synapse">
+          <h4>Synapsa i leki</h4>
+          <p class="src" style="margin:0">Wybierz, co dzieje się z przekaźnikiem. Rysunek pokazuje, gdzie działa dana grupa leków.</p>
+          <div class="seg" role="group" aria-label="Działanie na synapsę" id="synmodes"></div>
+          <svg viewBox="0 0 460 300" role="img" aria-label="Schemat synapsy chemicznej" id="synsvg"></svg>
+          <p class="syninfo" id="syninfo" aria-live="polite"></p>
+        </div>
+      </div>
+      <div>
+        <p class="lead">Mózg ma ok. 86 mld neuronów i podobną liczbę komórek glejowych. Poniżej najważniejsze typy komórek z perspektywy psychologii i psychiatrii.</p>
+        <div class="grid" id="celllist" style="grid-template-columns:repeat(auto-fill,minmax(230px,1fr))"></div>
+      </div>
+    </div>
+  </section>
+  <section class="tabpanel" id="tab-nt" hidden>
+    <p class="lead">Dotknij „Pokaż szlak”, a atlas zaświeci skąd i dokąd dany przekaźnik przekazuje sygnał. Kolumna „Receptory” mówi, jak szybko działa: jonotropowe (kanały jonowe) szybko, metabotropowe (białko G) wolno, ale długo.</p>
+    <div class="tablewrap"><table id="nttable"></table></div>
+  </section>
+  <section class="tabpanel" id="tab-drugs" hidden>
+    <p class="lead">Leki działają na synapsy: blokują wychwyt zwrotny, rozkład przekaźnika albo receptory. „Pokaż na mózgu” podświetla szlaki, na które działa dana grupa, a „Pokaż na synapsie” pokazuje mechanizm.</p>
+    <div id="druglist"></div>
+  </section>
+  <section class="tabpanel" id="tab-read" hidden>
+    <div class="prose">
+      <h3 style="font-family:var(--font-read);font-weight:500;font-size:20px;margin-top:0">Jak czytać połączenia „zaburzenie → obszar”</h3>
+      <ul>
+        <li><b>To korelacje, nie przyczyny.</b> Różnica w objętości czy aktywności może być skutkiem choroby, leczenia, stresu, używek albo niedożywienia (anoreksja), a nie jej źródłem.</li>
+        <li><b>Efekty są małe.</b> W depresji hipokamp jest średnio mniejszy o ok. 1%, Cohen's d = −0,14. Rozkłady pacjentów i osób zdrowych prawie całkowicie się nakładają, więc skan mózgu nie pozwala rozpoznać zaburzenia u konkretnej osoby.</li>
+        <li><b>Obszary się powtarzają.</b> Ciało migdałowate, hipokamp, ACC i kora przedczołowa pojawiają się w wielu zaburzeniach. Profile zmian w schizofrenii, chorobie dwubiegunowej i depresji idą w tę samą stronę i różnią się głównie siłą (SZ &gt; BD &gt; MDD).</li>
+        <li><b>Leki zmieniają obraz.</b> W schizofrenii ścieńczenie kory było 2–3 razy większe u osób przyjmujących leki przeciwpsychotyczne; lit wiąże się z grubszą korą w chorobie dwubiegunowej.</li>
+        <li><b>„↑ / ↓ aktywność”</b> pochodzi z badań fMRI/PET podczas konkretnych zadań. Wynik zależy od zadania i nie zawsze się replikuje (np. w borderline). Na mózgu czerwień oznacza „więcej”, a błękit „mniej”.</li>
+        <li><b>Siła dowodów</b> w tym module: <i>silne</i> = duże meta- lub mega-analizy (np. konsorcjum ENIGMA); <i>umiarkowane</i> = meta-analizy z mniejszych badań lub niespójne wyniki; <i>wstępne</i> = pojedyncze lub małe badania.</li>
+        <li><b>Szlaki neuroprzekaźników</b> pokazują główne, podręcznikowe drogi (np. Kandel, Purves). To schemat: prawdziwe szlaki są rozgałęzione i nakładają się, a tory na modelu są uproszczone. Nie ma prostych równań „jeden przekaźnik – jedno zaburzenie”.</li>
+        <li><b>Przekroje</b> pokazują model pocięty płaszczyzną: strzałkową (lewo–prawo), czołową (przód–tył) i poziomą (góra–dół). Wnętrze wypełniają kolory struktur, więc widać, jak głęboko leżą jądra podstawy, wzgórze czy ciało migdałowate.</li>
+        <li><b>Skąd jest model 3D.</b> Kora to standardowa powierzchnia fsaverage5 z FreeSurfera (uśredniony mózg wielu osób) podzielona na 68 obszarów atlasu Desikan-Killiany, tego samego, którego używa ENIGMA. Struktury podkorowe pochodzą z ENIGMA Toolbox, móżdżek i pień zbudowałam z szablonu MNI152. Małe jądra (np. miejsce sinawe, VTA, podwzgórze, ciała kolankowate) są pokazane jako kulki w przybliżonych współrzędnych MNI, bo są za małe na osobne modele.</li>
+        <li><b>Mapy ENIGMA</b> pokazują średnią różnicę między grupami (Cohen's d) w każdym obszarze. Kolor nie oznacza, że dany obszar „powoduje” zaburzenie.</li>
+      </ul>
+      <h3 style="font-family:var(--font-read);font-weight:500;font-size:20px">Źródła</h3>
+      <ol class="srclist" id="srclist"></ol>
+      <p class="src">Opisy funkcji obszarów i komórek oparto na podręcznikowej wiedzy z neuroanatomii (np. Kandel i in., <i>Principles of Neural Science</i>; Purves i in., <i>Neuroscience</i>) oraz na notatkach z wykładów z neurofizjologii i psychiatrii. Kody według ICD-11 (WHO).</p>
+    </div>
+  </section>
+  <section class="tabpanel" id="tab-json" hidden>
+    <p class="lead">Cała zawartość modułu jako jeden obiekt JSON (obszary, zaburzenia z kodami ICD-11, komórki, szlaki, sieci, leki, źródła).</p>
+    <div class="copyrow"><button class="btn" id="copyjson">Kopiuj JSON</button><span class="ok" id="copyok"></span></div>
+    <pre id="jsonpre"></pre>
+  </section>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>/*DATA*/</script>
+<script>/*GEO*/</script>
+<script>/*EXTRAS*/</script>
+<script>/*APP*/</script>
+</body>
+</html>

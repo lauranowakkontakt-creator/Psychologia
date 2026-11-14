@@ -280,6 +280,7 @@ test.describe('Nauka', () => {
       ['Egzamin', 'egzamin', 'Egzamin'],
       ['Postęp', 'postep', 'Postęp'],
       ['Mapa', 'mapa', 'Mapa powiązań'],
+      ['Atlas', 'atlas', 'Atlas mózgu'],
       ['Dopiski', 'dopiski', 'Moje dopiski'],
     ]) {
       await open(page)

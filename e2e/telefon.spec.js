@@ -16,6 +16,7 @@ const SCREENS = [
   'egzamin',
   'postep',
   'mapa',
+  'atlas',
   'dopiski',
   'nie-ma-takiej-strony',
 ]

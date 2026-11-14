@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from './auth.jsx'
 import { ContentProvider, useContent } from './content.jsx'
 import { findNode } from './lib/content.js'
-import { EXAM_PATH, legacyPath, MAP_PATH, NOTES_PATH, PROGRESS_PATH, REVIEW_PATH, SEARCH_PATH, toHash } from './lib/route.js'
+import { ATLAS_PATH, EXAM_PATH, legacyPath, MAP_PATH, NOTES_PATH, PROGRESS_PATH, REVIEW_PATH, SEARCH_PATH, toHash } from './lib/route.js'
 import { useRoute } from './router.js'
 import { HomeView } from './views/HomeView.jsx'
 import { SectionView } from './views/SectionView.jsx'
@@ -13,6 +13,7 @@ import { ReviewView } from './views/ReviewView.jsx'
 import { ExamView } from './views/ExamView.jsx'
 import { ProgressView } from './views/ProgressView.jsx'
 import { MapView } from './views/MapView.jsx'
+import { AtlasView } from './views/AtlasView.jsx'
 import { AnnotationsView } from './views/AnnotationsView.jsx'
 import { GateView } from './views/GateView.jsx'
 import { ErrorBoundary } from './components/ErrorBoundary.jsx'
@@ -26,6 +27,7 @@ const TITLES = {
   [PROGRESS_PATH]: 'Postęp nauki',
   [MAP_PATH]: 'Mapa powiązań',
   [NOTES_PATH]: 'Moje dopiski',
+  [ATLAS_PATH]: 'Atlas mózgu',
 }
 
 export default function App() {
@@ -85,6 +87,7 @@ function Screens() {
   else if (path === PROGRESS_PATH) view = <ProgressView />
   else if (path === MAP_PATH) view = <MapView />
   else if (path === NOTES_PATH) view = <AnnotationsView />
+  else if (path === ATLAS_PATH) view = <AtlasView />
   else if (!node) view = <NotFoundView />
   else if (node.type === 'temat') view = <TopicView key={`${node.path}?${q}`} topic={node} highlight={q} />
   else if (node.path) view = <SectionView key={node.path} section={node} />

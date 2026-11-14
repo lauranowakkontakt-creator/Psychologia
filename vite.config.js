@@ -59,12 +59,26 @@ export default defineConfig(({ mode }) => ({
         // Z każdym przedmiotem paczka rośnie; domyślne 2 MiB wyrzuciłoby ją
         // z pamięci offline (a build by się wywalił), stąd wyższy limit.
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+        // Atlas to osobna strona z ?theme= w adresie: ma trafić do pamięci offline,
+        // a nie dostać zamiast siebie stronę główną aplikacji.
+        ignoreURLParametersMatching: [/^utm_/, /^fbclid$/, /^theme$/],
+        navigateFallbackDenylist: [/\/atlas\//],
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
         // Czcionki Geist i Newsreader z Google Fonts — po pierwszym pobraniu
         // zostają w pamięci, więc bez internetu notatki wyglądają tak samo.
         runtimeCaching: [
+          // Atlas mózgu ładuje three.js z CDN — po pierwszym otwarciu działa też bez internetu.
+          {
+            urlPattern: /^https:\/\/(cdnjs\.cloudflare\.com|cdn\.jsdelivr\.net)\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'atlas-three',
+              expiration: { maxEntries: 8, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'StaleWhileRevalidate',

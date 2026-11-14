@@ -12,11 +12,11 @@ import { DAILY_HOURS, DAILY_KEY, nextChange, pickForNow } from '../lib/daily.js'
 import { safeInline } from '../sanitize.js'
 import { useStored } from '../store.js'
 import { ScopeSwitch } from '../components/ScopeSwitch.jsx'
-import { EXAM_PATH, MAP_PATH, NOTES_PATH, PROGRESS_PATH, REVIEW_PATH, SEARCH_PATH, toHash } from '../lib/route.js'
+import { ATLAS_PATH, EXAM_PATH, MAP_PATH, NOTES_PATH, PROGRESS_PATH, REVIEW_PATH, SEARCH_PATH, toHash } from '../lib/route.js'
 import { navigate } from '../router.js'
 import { useBookmarks, useHighlights, useLearnScope, useNotes, useRecent, useSrs } from '../hooks.js'
 import { useAuth } from '../auth.jsx'
-import { CardsIcon, ExamIcon, Icon, LogOutIcon, MapIcon, NotesIcon, ProgressIcon, SearchIcon } from '../components/Icon.jsx'
+import { BrainIcon, CardsIcon, ExamIcon, Icon, LogOutIcon, MapIcon, NotesIcon, ProgressIcon, SearchIcon } from '../components/Icon.jsx'
 import { ThemeToggle } from '../components/ThemeToggle.jsx'
 
 const RECENT_SHOWN = 3
@@ -67,6 +67,7 @@ export function HomeView({ root }) {
     { path: EXAM_PATH, icon: ExamIcon, title: 'Egzamin', sub: 'losowe pytania' },
     { path: PROGRESS_PATH, icon: ProgressIcon, title: 'Postęp', sub: 'co już umiesz' },
     { path: MAP_PATH, icon: MapIcon, title: 'Mapa', sub: 'powiązania tematów' },
+    { path: ATLAS_PATH, icon: BrainIcon, title: 'Atlas mózgu', sub: '3D, przekroje, szlaki' },
     { path: NOTES_PATH, icon: NotesIcon, title: 'Dopiski', sub: annotated ? countLabel(annotated, NOTE_FORMS) : 'Twoje zaznaczenia' },
   ]
 
