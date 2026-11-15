@@ -35,6 +35,20 @@ function notify(key, value) {
   for (const fn of listeners.get(key) || []) fn(value)
 }
 
+// Zmiana zrobiona w innej karcie tej samej przeglądarki — odśwież ekrany także tutaj.
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.storageArea !== window.localStorage || !e.key || !listeners.has(e.key)) return
+    let value
+    try {
+      value = e.newValue === null ? undefined : JSON.parse(e.newValue)
+    } catch {
+      return
+    }
+    if (value !== undefined) notify(e.key, value)
+  })
+}
+
 // Zmiany zrobione w aplikacji (nie te, które przyszły z chmury) — słucha ich
 // synchronizacja, żeby wysłać je na inne urządzenia.
 export function subscribeWrites(fn) {

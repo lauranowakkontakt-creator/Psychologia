@@ -3,10 +3,35 @@ import { parseHash, toHash } from './lib/route.js'
 
 const NAV_EVENT = 'psycho:navigate'
 
+// Każdy wpis w historii przeglądarki dostaje numer. Wpis bez numeru jest nowy
+// (kliknięty link), wpis z numerem to cofnięcie albo przejście naprzód — wtedy
+// ekran wraca do miejsca, w którym był przewinięty (App).
+const INDEX = 'psychoIdx'
+let lastIndex = -1
+
+function readRoute() {
+  const state = window.history.state
+  let nav = 'history'
+  if (typeof state?.[INDEX] === 'number') {
+    lastIndex = state[INDEX]
+  } else {
+    nav = 'new'
+    lastIndex += 1
+    try {
+      window.history.replaceState({ ...state, [INDEX]: lastIndex }, '')
+    } catch {}
+  }
+  return { ...parseHash(window.location.hash), nav }
+}
+
 export function useRoute() {
-  const [route, setRoute] = useState(() => parseHash(window.location.hash))
+  const [route, setRoute] = useState(readRoute)
   useEffect(() => {
-    const onChange = () => setRoute(parseHash(window.location.hash))
+    // Kliknięcie linku zgłasza i `popstate`, i `hashchange` — drugie zdarzenie nic nie zmienia.
+    const onChange = () => {
+      const next = readRoute()
+      setRoute((prev) => (prev.path === next.path && prev.q === next.q ? prev : next))
+    }
     window.addEventListener('hashchange', onChange)
     window.addEventListener('popstate', onChange)
     window.addEventListener(NAV_EVENT, onChange)

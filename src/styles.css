@@ -1675,6 +1675,20 @@ mark.hl-user {
   width: 100%;
 }
 
+/* Podpowiedź skrótów klawiszowych — tylko tam, gdzie jest klawiatura i mysz. */
+.keys-hint {
+  display: none;
+  margin: 10px 0 0;
+  font-size: 12px;
+  text-align: center;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .keys-hint {
+    display: block;
+  }
+}
+
 .grade-label {
   margin-top: 4px;
 }

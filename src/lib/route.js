@@ -63,3 +63,14 @@ export function legacyPath(path) {
   }
   return null
 }
+
+// Czy po przejściu wrócić do miejsca, w którym ekran był ostatnio przewinięty.
+// Tak przy cofaniu po historii (`nav === 'history'`) i przy wyjściu „w górę”
+// (z notatki do jej listy, z listy na start); nowy ekran zaczyna się od góry.
+export function restoresScroll(nav, from, to) {
+  if (nav === 'history') return true
+  const a = (from || '').replace(/^\/+|\/+$/g, '')
+  const b = (to || '').replace(/^\/+|\/+$/g, '')
+  if (a === b) return false
+  return b === '' || a.startsWith(`${b}/`)
+}

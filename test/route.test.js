@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { legacyPath, parentPath, parseHash, toHash } from '../src/lib/route.js'
+import { legacyPath, parentPath, parseHash, restoresScroll, toHash } from '../src/lib/route.js'
 
 test('parseHash', () => {
   assert.deepEqual(parseHash(''), { path: '', q: '' })
@@ -39,4 +39,15 @@ test('ekrany aplikacji nie kolidują z działami w content/', async () => {
   const { ROOT } = await import('./helpers.js')
   const top = readdirSync(new URL('content', `file://${ROOT}`)).filter((n) => !n.startsWith('.') && !n.startsWith('_'))
   for (const p of APP_PATHS) assert.ok(!top.includes(p), `folder content/${p} zasłoniłby ekran aplikacji`)
+})
+
+test('restoresScroll: cofanie i wyjście w górę wracają do miejsca, nowy ekran od góry', () => {
+  assert.equal(restoresScroll('history', 'studia', 'kursy/a/temat'), true)
+  assert.equal(restoresScroll('new', 'kursy/a/temat', 'kursy/a'), true)
+  assert.equal(restoresScroll('new', 'kursy/a/temat', 'kursy'), true)
+  assert.equal(restoresScroll('new', 'powtorki', ''), true)
+  assert.equal(restoresScroll('new', 'kursy/a', 'kursy/a/temat'), false)
+  assert.equal(restoresScroll('new', 'kursy/a/temat-1', 'kursy/a/temat-2'), false)
+  assert.equal(restoresScroll('new', 'kursy/ab', 'kursy/a'), false)
+  assert.equal(restoresScroll('new', 'kursy', 'kursy'), false)
 })

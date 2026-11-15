@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { addRecent, BOOKMARKS_KEY, RECENT_KEY, setProgress, TEXT_SIZE_KEY, TEXT_SIZES, textSizeIndex, toggleBookmark } from './lib/prefs.js'
 import { markRead, READ_KEY } from './lib/progress.js'
 import { SRS_KEY } from './lib/srs.js'
@@ -56,6 +56,31 @@ export function useBookmarks() {
   return [bookmarks, toggle]
 }
 
+// Bieżący czas, który sam się odświeża: po powrocie do aplikacji (na telefonie
+// potrafi wisieć w tle całymi dniami) i w chwili `until(now)` — np. gdy zmienia się
+// „Pojęcie na teraz” albo o północy przybywa fiszek na dziś.
+export function useNow(until) {
+  const [now, setNow] = useState(() => Date.now())
+  const at = until ? until(now) : 0
+  useEffect(() => {
+    const tick = () => setNow(Date.now())
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') tick()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('pageshow', tick)
+    // Limit setTimeout to ok. 24 dni; +50 ms, żeby na pewno być już po zmianie.
+    const delay = at - Date.now() + 50
+    const timer = at && delay < 2 ** 31 ? setTimeout(tick, Math.max(delay, 1000)) : null
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('pageshow', tick)
+      clearTimeout(timer)
+    }
+  }, [at])
+  return now
+}
+
 // Rozmiar tekstu notatki: { size, next, cycle } — `cycle` przełącza na kolejny.
 export function useTextSize() {
   const [stored, setStored] = useStored(TEXT_SIZE_KEY, 0)
@@ -87,4 +112,22 @@ export function useLearnScope(sections) {
   const [stored, setStored] = useStored(LEARN_SCOPE_KEY, null)
   const scope = sections.some((s) => s.path === stored) ? stored : sections[0]?.path || ''
   return [scope, setStored]
+}
+
+// Skróty klawiszowe na komputerze (fiszki, egzamin): `onKey(klawisz)` zwraca true,
+// gdy klawisz obsłużył. Nie działa podczas pisania w polu ani z Ctrl/Alt/Cmd.
+export function useKeys(onKey) {
+  const handler = useRef(onKey)
+  handler.current = onKey
+  useEffect(() => {
+    const onDown = (e) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return
+      if (e.target.closest?.('input, textarea, select, a, [contenteditable]')) return
+      // Spacja i Enter na przycisku z fokusem robią swoje — nie dublujemy kliknięcia.
+      if (e.target.closest?.('button') && (e.key === ' ' || e.key === 'Enter')) return
+      if (handler.current(e.key)) e.preventDefault()
+    }
+    window.addEventListener('keydown', onDown)
+    return () => window.removeEventListener('keydown', onDown)
+  }, [])
 }

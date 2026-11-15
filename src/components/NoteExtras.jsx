@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { toHash } from '../lib/route.js'
 import { subjectColor } from '../lib/format.js'
 import { ChevronIcon, TocIcon } from './Icon.jsx'
@@ -83,6 +83,25 @@ export function MyNote({ text, onSave }) {
     }, SAVE_DELAY)
     return () => clearTimeout(t)
   }, [draft, saved, onSave])
+
+  // Wyjście z notatki gestem „wstecz” albo zamknięcie aplikacji przed upływem
+  // opóźnienia — bez tego ostatnie słowa by przepadły (pole nie dostaje wtedy `blur`).
+  const pending = useRef(null)
+  pending.current = saved ? null : { draft, onSave }
+  useEffect(() => {
+    const flush = () => {
+      if (!pending.current) return
+      pending.current.onSave(pending.current.draft)
+      pending.current = null
+    }
+    window.addEventListener('pagehide', flush)
+    document.addEventListener('visibilitychange', flush)
+    return () => {
+      window.removeEventListener('pagehide', flush)
+      document.removeEventListener('visibilitychange', flush)
+      flush()
+    }
+  }, [])
 
   return (
     <section className="note-extra my-note">

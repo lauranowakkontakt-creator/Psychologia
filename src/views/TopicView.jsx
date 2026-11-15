@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useContent } from '../content.jsx'
 import { siblings } from '../lib/content.js'
-import { CARD_FORMS, countLabel, formatDate, pad2 } from '../lib/format.js'
+import { countLabel, DEFINITION_FORMS, formatDate, pad2, QUESTION_FORMS } from '../lib/format.js'
 import { splitLead } from '../lib/note.js'
 import { safeMarkdown } from '../sanitize.js'
 import { backlinks } from '../lib/links.js'
@@ -18,11 +18,18 @@ import { CardsIcon, CloseIcon, HeadphonesIcon, HighlighterIcon, PauseIcon, PlayI
 export function TopicView({ topic, highlight }) {
   const { tree, links, cards, topicByPath } = useContent()
   const { prev, next, number, section } = siblings(tree, topic)
-  const { leadHtml, restHtml } = useMemo(() => {
+  // Nagłówki ## do spisu treści bierzemy od razu z gotowego HTML-a — spis jest
+  // na miejscu już przy pierwszym rysowaniu i nie przesuwa treści chwilę później.
+  const { leadHtml, restHtml, headings } = useMemo(() => {
     const { lead, rest } = splitLead(topic.body)
+    const html = safeMarkdown(rest)
+    const doc = new DOMParser().parseFromString(html, 'text/html')
     return {
       leadHtml: lead ? safeMarkdown(lead) : '',
-      restHtml: safeMarkdown(rest),
+      restHtml: html,
+      headings: [...doc.body.children]
+        .filter((el) => el.tagName === 'H2')
+        .map((h, i) => ({ id: `sekcja-${i + 1}`, text: h.textContent })),
     }
   }, [topic.body])
 
@@ -32,23 +39,20 @@ export function TopicView({ topic, highlight }) {
   const [notes, setNotes] = useNotes()
   const [highlights, setHighlights] = useHighlights()
   const bodyRef = useRef(null)
-  const [headings, setHeadings] = useState([])
 
   const myHighlights = highlightsFor(highlights, topic.path)
   // Zmiana zaznaczeń rysuje treść od nowa (klucz), a efekt nakłada je jeszcze raz.
   const hlKey = myHighlights.map((h) => h.id).join(',')
 
-  // Po narysowaniu treści: ID nagłówków do spisu treści, własne zaznaczenia,
+  // Po narysowaniu treści: ID nagłówków (te same co w spisie treści), własne zaznaczenia,
   // a po wejściu z wyszukiwarki — podświetlenie szukanych słów i przewinięcie do pierwszego.
   // TopicView ma klucz ścieżka+zapytanie (App), więc HTML jest świeży przy każdym zapytaniu.
   useEffect(() => {
     const root = bodyRef.current
     if (!root) return
-    const found = [...root.querySelectorAll('.note-body > h2')].map((h, i) => {
+    root.querySelectorAll('.note-body > h2').forEach((h, i) => {
       h.id = `sekcja-${i + 1}`
-      return { id: h.id, text: h.textContent }
     })
-    setHeadings(found)
     applyUserHighlights(root, myHighlights)
     if (highlight) highlightMatches(root, highlight)?.scrollIntoView({ block: 'center' })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -58,7 +62,15 @@ export function TopicView({ topic, highlight }) {
     () => backlinks(links, topic.path).map((p) => topicByPath.get(p)).filter(Boolean),
     [links, topicByPath, topic.path],
   )
-  const cardCount = useMemo(() => cards.filter((c) => c.path === topic.path).length, [cards, topic.path])
+  // „3 pytania i 4 definicje” — fiszki tej notatki z „Szybkiej powtórki” i ze „Słowniczka”.
+  const cardsLabel = useMemo(() => {
+    const mine = cards.filter((c) => c.path === topic.path)
+    const definitions = mine.filter((c) => c.kind === 'definicja').length
+    return [
+      mine.length - definitions && countLabel(mine.length - definitions, QUESTION_FORMS),
+      definitions && countLabel(definitions, DEFINITION_FORMS),
+    ].filter(Boolean).join(' i ')
+  }, [cards, topic.path])
 
   const saveNote = useCallback((text) => setNotes((m) => setNote(m, topic.path, text)), [setNotes, topic.path])
 
@@ -137,12 +149,12 @@ export function TopicView({ topic, highlight }) {
           {restHtml && <div className="prose note-body" dangerouslySetInnerHTML={{ __html: restHtml }} />}
         </div>
 
-        {cardCount > 0 && (
+        {cardsLabel && (
           <a className="glass note-cards" href={toHash(REVIEW_PATH, topic.path)}>
             <CardsIcon />
             <span className="mini-text">
               <span className="mini-title">Powtórz fiszki z tej notatki</span>
-              <span className="mini-sub">{countLabel(cardCount, CARD_FORMS)} z „Szybkiej powtórki”</span>
+              <span className="mini-sub">{cardsLabel}</span>
             </span>
           </a>
         )}
