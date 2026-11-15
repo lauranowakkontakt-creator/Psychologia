@@ -1379,6 +1379,48 @@ mark {
   flex: none;
 }
 
+/* ---------- Ostrzeżenie o zapisie i kopia zapasowa ---------- */
+
+.problem-bar {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px 12px 12px 16px;
+  border-color: var(--grade-again);
+  font-size: 14px;
+}
+
+.problem-bar p {
+  flex: 1;
+  margin: 0;
+}
+
+.problem-bar .icon-btn {
+  flex: none;
+}
+
+.backup-text {
+  margin: 0 0 12px;
+  font-size: 14px;
+}
+
+.backup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.backup-actions input[type='file'] {
+  font-size: 16px;
+}
+
+.backup-actions .btn-accent {
+  padding: 0 22px;
+}
+
 /* ---------- Atlas mózgu (osobna strona w ramce, motyw przekazywany z aplikacji) ---------- */
 
 .atlas-frame {

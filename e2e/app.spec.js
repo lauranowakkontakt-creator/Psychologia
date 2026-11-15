@@ -568,3 +568,40 @@ test.describe('Komputer', () => {
     await expect(toc).toHaveCSS('position', 'sticky')
   })
 })
+
+test.describe('Kopia zapasowa i trwałość nauki', () => {
+  test('„Postęp”: kopia pobiera się do pliku, a wczytana na pustym urządzeniu przywraca dane', async ({ page }) => {
+    const topic = topics[0]
+    await open(page, 'postep')
+    await page.evaluate((path) => localStorage.setItem('psycho-bookmarks', JSON.stringify([path])), topic.path)
+
+    const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Pobierz kopię' }).click()])
+    expect(download.suggestedFilename()).toMatch(/^psycho-kopia-\d{4}-\d{2}-\d{2}\.json$/)
+    const file = await download.path()
+
+    await page.evaluate(() => localStorage.removeItem('psycho-bookmarks'))
+    await page.locator('.backup input[type=file]').setInputFiles(file)
+    await expect(page.locator('.backup [role=status]')).toHaveText(/Kopia wczytana/)
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('psycho-bookmarks')))).toEqual([topic.path])
+
+    // Zły plik niczego nie psuje.
+    await page.locator('.backup input[type=file]').setInputFiles({ name: 'x.json', mimeType: 'application/json', buffer: Buffer.from('{}') })
+    await expect(page.locator('.backup [role=status]')).toHaveText(/To nie jest plik kopii/)
+    await open(page)
+    await expect(page.getByText('Zakładki')).toBeVisible()
+  })
+
+  test('historia powtórek wraca do fiszki po przeniesieniu notatki', async ({ page }) => {
+    const cards = allCards(tree)
+    const suffix = (c) => c.id.slice(c.id.lastIndexOf('#'))
+    const card = cards.find((c) => cards.filter((o) => suffix(o) === suffix(c)).length === 1)
+    await open(page)
+    await page.evaluate(
+      (id) => localStorage.setItem('psycho-srs', JSON.stringify({ [id]: { due: 99999, interval: 30, ease: 2.5, reps: 4, lapses: 0, last: 1, first: 1 } })),
+      `stary/folder/notatka${suffix(card)}`,
+    )
+    await page.reload()
+    await expect.poll(() => page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('psycho-srs'))))).toEqual([card.id])
+    expect(await page.evaluate((id) => JSON.parse(localStorage.getItem('psycho-srs'))[id].interval, card.id)).toBe(30)
+  })
+})

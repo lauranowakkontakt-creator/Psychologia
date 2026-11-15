@@ -5,15 +5,15 @@
 //   npm run wyslij-notatki -- --z ../Psycho/content   notatki z innego folderu
 //
 // Klucz serwisowy: konsola Firebase -> Ustawienia projektu -> Konta usługi ->
-// „Wygeneruj nowy klucz prywatny”. Plik zapisz POZA repozytorium (albo jako
-// klucz-serwisowy.json — jest w .gitignore) i wskaż go zmienną:
+// „Wygeneruj nowy klucz prywatny”. Plik zapisz jako `klucz-serwisowy.json` w folderze projektu
+// (jest w .gitignore — skrypt sam go znajdzie) albo poza repozytorium i wskaż zmienną:
 //   GOOGLE_APPLICATION_CREDENTIALS=/ścieżka/klucz.json npm run wyslij-notatki
 // Konto serwisowe omija reguły Firestore — dlatego klucz nigdy nie trafia do repo.
 //
 // Notatki lądują w `tresc/p01`, `tresc/p02`… (paczki do ~900 KB) i `tresc/_spis`
 // (wersja, lista paczek, daty dodania). Paczki, których już nie ma, są usuwane.
 import { execFileSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { contentVersion, packChunks } from '../src/lib/chunks.js'
@@ -64,8 +64,10 @@ if (dryRun) {
   process.exit(0)
 }
 
+const localKey = join(ROOT, 'klucz-serwisowy.json')
+if (!process.env.GOOGLE_APPLICATION_CREDENTIALS && existsSync(localKey)) process.env.GOOGLE_APPLICATION_CREDENTIALS = localKey
 if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-  console.error('Brak GOOGLE_APPLICATION_CREDENTIALS (ścieżka do klucza serwisowego). Opis na górze tego pliku.')
+  console.error('Brak klucza serwisowego: plik klucz-serwisowy.json w folderze projektu albo zmienna GOOGLE_APPLICATION_CREDENTIALS. Opis na górze tego pliku.')
   process.exit(1)
 }
 
@@ -75,11 +77,10 @@ initializeApp({ credential: applicationDefault() })
 const db = getFirestore()
 const col = db.collection('tresc')
 
-const batch = db.batch()
-for (const c of chunks) batch.set(col.doc(c.id), { files: c.files })
-// Spis na końcu tej samej paczki zapisów — aplikacja nie zobaczy nowej wersji przed paczkami.
-batch.set(col.doc('_spis'), { version, chunks: chunks.map((c) => c.id), added, updatedAt: FieldValue.serverTimestamp() })
+// Paczka po paczce (jedno wspólne żądanie ma limit ok. 10 MB, a notatek przybywa),
+// spis na końcu — aplikacja nie zobaczy nowej wersji przed paczkami — a potem sprzątanie starych.
+for (const c of chunks) await col.doc(c.id).set({ files: c.files })
+await col.doc('_spis').set({ version, chunks: chunks.map((c) => c.id), added, updatedAt: FieldValue.serverTimestamp() })
 const keep = new Set([...chunks.map((c) => c.id), '_spis'])
-for (const ref of await col.listDocuments()) if (!keep.has(ref.id)) batch.delete(ref)
-await batch.commit()
+for (const ref of await col.listDocuments()) if (!keep.has(ref.id)) await ref.delete()
 console.log(`Wysłano ${chunks.length} paczek do Firestore.`)

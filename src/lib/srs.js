@@ -7,8 +7,11 @@
 //   reps     – ile razy z rzędu odpowiedź była dobra,
 //   lapses   – ile razy fiszka „wypadła” z pamięci,
 //   last     – kiedy ostatnio oceniona (ms), do łączenia zapisów z kilku urządzeń,
-//   first    – kiedy oceniona pierwszy raz (ms), do dziennego limitu nowych.
+//   first    – kiedy oceniona pierwszy raz (ms), do dziennego limitu nowych,
+//   a        – skrót odpowiedzi; po nim historia wraca do fiszki, gdy poprawisz pytanie (reconcileSrs).
 // Fiszka bez wpisu jest nowa.
+
+import { hashText } from './flashcards.js'
 
 export const SRS_KEY = 'psycho-srs'
 export const NEW_PER_DAY = 15
@@ -61,6 +64,7 @@ export function grade(state, id, value, now = Date.now()) {
     lapses,
     last: now,
     first: prev.first || now,
+    ...(prev.a ? { a: prev.a } : {}),
   }
   return { ...safe, [id]: entry }
 }
@@ -116,4 +120,53 @@ export function mergeSrs(a, b) {
     if (!out[id] || (entry.last || 0) > (out[id].last || 0)) out[id] = entry
   }
   return out
+}
+
+// Historia powtórek trzyma się identyfikatora fiszki: ścieżka notatki + skrót pytania.
+// Po przeniesieniu notatki albo poprawce pytania identyfikator się zmienia, więc tu
+// przepinamy osierocone wpisy na nowe fiszki:
+//   – notatka przeniesiona: to samo pytanie (ten sam skrót) pod inną ścieżką,
+//   – pytanie poprawione: ta sama notatka i ta sama odpowiedź (skrót `a` we wpisie).
+// Przepinamy tylko wtedy, gdy pasuje dokładnie jedna fiszka bez historii. Wpisów, których
+// nie da się dopasować, nie ruszamy. Bez zmian zwraca ten sam obiekt.
+export function reconcileSrs(state, cards) {
+  if (!state || typeof state !== 'object' || Array.isArray(state)) return state
+  const out = { ...state }
+  let changed = false
+  const freeBySuffix = new Map()
+  const freeByAnswer = new Map()
+  const push = (map, key, card) => map.set(key, [...(map.get(key) || []), card])
+  const known = new Set()
+  for (const card of cards) {
+    known.add(card.id)
+    const a = hashText(card.answer)
+    const entry = out[card.id]
+    if (entry) {
+      if (entry.a !== a) {
+        out[card.id] = { ...entry, a }
+        changed = true
+      }
+    } else {
+      push(freeBySuffix, card.id.slice(card.id.lastIndexOf('#')), card)
+      push(freeByAnswer, `${card.path}|${a}`, card)
+    }
+  }
+  // Najświeższe wpisy pierwsze — gdy po synchronizacji wróci stary duplikat, wygrywa nowszy.
+  const orphans = Object.keys(state)
+    .filter((id) => !known.has(id) && id.includes('#') && state[id] && typeof state[id] === 'object')
+    .sort((x, y) => (state[y].last || 0) - (state[x].last || 0))
+  for (const id of orphans) {
+    if (!id.includes('#')) continue
+    const cut = id.lastIndexOf('#')
+    const entry = state[id]
+    const only = (list) => (list || []).filter((c) => !out[c.id])
+    const moved = only(freeBySuffix.get(id.slice(cut)))
+    const edited = entry.a ? only(freeByAnswer.get(`${id.slice(0, cut)}|${entry.a}`)) : []
+    const target = moved.length === 1 ? moved[0] : edited.length === 1 ? edited[0] : null
+    if (!target) continue
+    out[target.id] = { ...entry, a: hashText(target.answer) }
+    delete out[id]
+    changed = true
+  }
+  return changed ? out : state
 }

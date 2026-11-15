@@ -5,6 +5,9 @@ import { CARD_FORMS, countLabel, subjectColor, TOPIC_FORMS } from '../lib/format
 import { REVIEW_PATH, toHash } from '../lib/route.js'
 import { scopeOf } from '../lib/flashcards.js'
 import { useLearnScope, useReadMap, useSrs } from '../hooks.js'
+import { useRef, useState } from 'react'
+import { backupFileName, buildBackup, parseBackup, restoreBackup } from '../lib/backup.js'
+import { readStored, writeLocal } from '../store.js'
 import { Topbar } from '../components/Topbar.jsx'
 import { ScopeSwitch } from '../components/ScopeSwitch.jsx'
 
@@ -56,7 +59,57 @@ export function ProgressView() {
           ))}
         </ul>
       </section>
+
+      <Backup />
     </>
+  )
+}
+
+// Kopia zapasowa danych nauki do pliku — i wczytanie jej z powrotem (łączy, nie kasuje).
+function Backup() {
+  const input = useRef(null)
+  const [message, setMessage] = useState('')
+
+  const download = () => {
+    const backup = buildBackup((key) => readStored(key, undefined))
+    const url = URL.createObjectURL(new Blob([JSON.stringify(backup)], { type: 'application/json' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = backupFileName()
+    document.body.append(link)
+    link.click()
+    link.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+    setMessage('Kopia zapisana w pobranych plikach.')
+  }
+
+  const restore = async (event) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    const data = parseBackup(await file.text())
+    if (!data) {
+      setMessage('To nie jest plik kopii z tej aplikacji.')
+      return
+    }
+    const changes = restoreBackup(data, (key) => readStored(key, undefined))
+    for (const [key, value] of Object.entries(changes)) writeLocal(key, value)
+    setMessage(Object.keys(changes).length ? 'Kopia wczytana i połączona z danymi na tym urządzeniu.' : 'Wszystko z tej kopii już tu jest.')
+  }
+
+  return (
+    <section className="home-block backup">
+      <h2 className="block-label">Kopia zapasowa</h2>
+      <p className="muted backup-text">
+        Fiszki, przeczytane notatki, zakładki, dopiski i zaznaczenia w jednym pliku. Wczytanie kopii niczego nie kasuje.
+      </p>
+      <div className="backup-actions">
+        <button type="button" className="btn-accent" onClick={download}>Pobierz kopię</button>
+        <button type="button" className="text-link" onClick={() => input.current?.click()}>Wczytaj kopię</button>
+        <input ref={input} type="file" accept="application/json,.json" hidden onChange={restore} aria-label="Plik kopii zapasowej" />
+      </div>
+      {message && <p className="muted backup-text" role="status">{message}</p>}
+    </section>
   )
 }
 
