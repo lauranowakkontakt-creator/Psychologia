@@ -1,15 +1,13 @@
 import { useMemo, useState } from 'react'
 import { useContent } from '../content.jsx'
 import { EXAM_SIZES, examGroups, examResult, examVerdict, pickQuestions } from '../lib/exam.js'
-import { countLabel } from '../lib/format.js'
+import { countLabel, outOf, QUESTION_FORMS, QUESTION_OF } from '../lib/format.js'
 import { toHash } from '../lib/route.js'
 import { scopeOf } from '../lib/flashcards.js'
-import { useLearnScope } from '../hooks.js'
+import { useKeys, useLearnScope } from '../hooks.js'
 import { ScopeSwitch } from '../components/ScopeSwitch.jsx'
 import { safeInline } from '../sanitize.js'
 import { Topbar } from '../components/Topbar.jsx'
-
-const QUESTION_FORMS = ['pytanie', 'pytania', 'pytań']
 
 // Tryb egzaminu: wybór przedmiotów i liczby pytań, pytania jedno po drugim,
 // samoocena i wynik z listą notatek do powtórzenia. Bez zapisu — to próba, nie fiszki.
@@ -43,6 +41,19 @@ export function ExamView() {
     setPos((p) => p + 1)
     setShown(false)
   }
+
+  // Na komputerze: spacja albo Enter odsłania odpowiedź, 1 – nie wiedziałam, 2 – wiedziałam.
+  useKeys((key) => {
+    if (!questions || pos >= questions.length) return false
+    if (!shown) {
+      if (key !== ' ' && key !== 'Enter') return false
+      setShown(true)
+      return true
+    }
+    if (key !== '1' && key !== '2') return false
+    answer(key === '2')
+    return true
+  })
 
   const toggle = (name) => setChosen((list) => (list.includes(name) ? list.filter((n) => n !== name) : [...list, name]))
 
@@ -99,7 +110,7 @@ export function ExamView() {
         <header className="page-head">
           <p className="eyebrow">Wynik</p>
           <h1 className="title-xl">{result.percent}%</h1>
-          <p className="muted page-sub">{result.known} z {countLabel(result.total, QUESTION_FORMS)}. {examVerdict(result.percent)}</p>
+          <p className="muted page-sub">{outOf(result.known, result.total, QUESTION_OF)}. {examVerdict(result.percent)}</p>
         </header>
         <div className="progress exam-progress" role="progressbar" aria-label="Wynik egzaminu" aria-valuemin={0} aria-valuemax={100} aria-valuenow={result.percent}>
           <span style={{ width: `${result.percent}%` }} />
@@ -155,10 +166,12 @@ export function ExamView() {
                 <span className="grade-name">Wiedziałam</span>
               </button>
             </div>
+            <p className="muted keys-hint">Klawisze 1 i 2</p>
           </>
         ) : (
           <button type="button" className="btn-accent flashcard-show" onClick={() => setShown(true)}>Pokaż odpowiedź</button>
         )}
+        {!shown && <p className="muted keys-hint">Spacja</p>}
       </section>
     </>
   )

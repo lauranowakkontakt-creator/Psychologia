@@ -1,7 +1,7 @@
 import { useContent } from '../content.jsx'
 import { percent, progressRows } from '../lib/progress.js'
-import { cardStats } from '../lib/srs.js'
-import { CARD_FORMS, countLabel, subjectColor, TOPIC_FORMS } from '../lib/format.js'
+import { cardStats, dueCards } from '../lib/srs.js'
+import { CARD_OF, outOf, subjectColor, TOPIC_OF } from '../lib/format.js'
 import { REVIEW_PATH, toHash } from '../lib/route.js'
 import { scopeOf } from '../lib/flashcards.js'
 import { useLearnScope, useReadMap, useSrs } from '../hooks.js'
@@ -20,6 +20,8 @@ export function ProgressView() {
   const rows = progressRows(tree, read, cards, srs).filter((r) => r.path.split('/')[0] === scope)
   const totalRead = rows.reduce((n, r) => n + r.read, 0)
   const stats = cardStats(cards, srs)
+  // Tyle samo co na ekranie Powtórek: zaległe i nowe do dziennego limitu.
+  const today = dueCards(cards, srs).length
 
   return (
     <>
@@ -33,9 +35,9 @@ export function ProgressView() {
       <ScopeSwitch sections={tree.sections} value={scope} onChange={setScope} />
 
       <div className="stat-tiles">
-        <Stat label="Przeczytane" value={`${percent(totalRead, topics.length)}%`} sub={`${totalRead} z ${countLabel(topics.length, TOPIC_FORMS)}`} />
-        <Stat label="Opanowane fiszki" value={`${percent(stats.known, stats.total)}%`} sub={`${stats.known} z ${countLabel(stats.total, CARD_FORMS)}`} />
-        <Stat label="W nauce" value={stats.learning} sub={`na dziś ${stats.due}`} />
+        <Stat label="Przeczytane" value={`${percent(totalRead, topics.length)}%`} sub={outOf(totalRead, topics.length, TOPIC_OF)} />
+        <Stat label="Opanowane fiszki" value={`${percent(stats.known, stats.total)}%`} sub={outOf(stats.known, stats.total, CARD_OF)} />
+        <Stat label="W nauce" value={stats.learning} sub={`na dziś ${today}`} />
       </div>
 
       <section className="home-block">

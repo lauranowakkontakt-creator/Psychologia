@@ -2,6 +2,7 @@ import { ALL_TOPICS_TIMEOUT, allSections, expect, open, test, topics, tree } fro
 import { normalize } from '../src/lib/search.js'
 import { siblings } from '../src/lib/content.js'
 import { allCards, cardGroup } from '../src/lib/flashcards.js'
+import { NEW_PER_DAY } from '../src/lib/srs.js'
 
 // Działanie aplikacji krok po kroku, tak jak klika użytkowniczka.
 
@@ -266,6 +267,38 @@ test.describe('Adresy', () => {
     await page.goBack()
     await expect(page).toHaveURL(new RegExp(`#/${t.sectionPath.split('/')[0]}$`))
   })
+
+  test('cofnięcie i Wstecz do listy wracają do przewiniętego miejsca, nowy ekran zaczyna od góry', async ({ page }) => {
+    const t = topics.find((x) => siblings(tree, x).next)
+    test.skip(!t, 'potrzebne dwa tematy w jednej sekcji')
+    const scrollY = () => page.evaluate(() => Math.round(window.scrollY))
+    await open(page, t.path)
+    await page.evaluate(() => window.scrollTo(0, 300))
+    await expect.poll(scrollY).toBe(300)
+    await page.locator('.note-bar .bar-next').click()
+    await expect(page.locator('.note-title')).toHaveText(siblings(tree, t).next.title)
+    expect(await scrollY()).toBe(0)
+    await page.goBack()
+    await expect(page.locator('.note-title')).toHaveText(t.title)
+    await expect.poll(scrollY).toBe(300)
+
+    // Start przewinięty w dół, wejście w dział i Wstecz w aplikacji — start tam, gdzie był.
+    await open(page)
+    // Kafelek najpierw na ekran (na niższym telefonie jest pod zgięciem) — dopiero wtedy
+    // zapamiętujemy miejsce, bo samo kliknięcie też przewinęłoby do niego stronę.
+    const tile = page.locator('.learn-tile', { hasText: 'Postęp' })
+    await page.evaluate(() => window.scrollTo(0, 200))
+    await expect.poll(scrollY).toBe(200)
+    await tile.scrollIntoViewIfNeeded()
+    const before = await scrollY()
+    expect(before).toBeGreaterThan(0)
+    await tile.click()
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Postęp')
+    expect(await scrollY()).toBe(0)
+    await page.getByRole('link', { name: 'Wstecz' }).click()
+    await expect(page.locator('.logo')).toBeVisible()
+    await expect.poll(scrollY).toBe(before)
+  })
 })
 
 // ---------- Nauka: fiszki, egzamin, postęp, mapa, dopiski ----------
@@ -301,6 +334,16 @@ test.describe('Nauka', () => {
     expect(saved).toBe(1)
   })
 
+  test('start, powtórki i postęp pokazują tę samą liczbę fiszek na dziś', async ({ page }) => {
+    await open(page, 'powtorki')
+    const today = (await page.locator('.page-sub').textContent()).match(/na dziś (\d+)/)[1]
+    expect(Number(today)).toBeGreaterThan(0)
+    await open(page, 'postep')
+    await expect(page.locator('.stat-tile').last()).toContainText(`na dziś ${today}`)
+    await open(page)
+    await expect(page.locator('.learn-tile', { hasText: 'Powtórki' }).locator('.learn-sub')).toHaveText(new RegExp(`^${today} fisz\\S+ na dziś$`))
+  })
+
   test('powtórki z jednej notatki i wybór zakresu', async ({ page }) => {
     test.skip(!withCards, 'brak notatek z „Szybką powtórką”')
     await open(page, withCards.path)
@@ -308,6 +351,9 @@ test.describe('Nauka', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(withCards.title)
     const n = cards.filter((c) => c.path === withCards.path).length
     await expect(page.locator('.flashcard-meta')).toContainText(`1 / ${n}`)
+    // Podpis mówi, skąd są fiszki: pytania i definicje osobno.
+    await open(page, withCards.path)
+    await expect(page.locator('.note-cards .mini-sub')).toHaveText(/^\d+ (pytani|definicj)\S+( i \d+ definicj\S+)?$/)
 
     await open(page, 'powtorki')
     const group = cardGroup(cards[0])
@@ -428,6 +474,17 @@ test.describe('Notatka: dodatki', () => {
     await expect(page.locator('.annotation-note')).toHaveText('Zapytać na wykładzie')
   })
 
+  test('dopisek nie ginie, gdy od razu po pisaniu cofniemy się gestem', async ({ page }) => {
+    const t = topics[0]
+    await open(page)
+    await open(page, t.path)
+    await page.getByRole('textbox', { name: 'Mój dopisek' }).pressSequentially('Na szybko')
+    await page.goBack()
+    await expect(page.locator('.logo')).toBeVisible()
+    const saved = await page.evaluate((p) => JSON.parse(localStorage.getItem('psycho-notes') || '{}')[p]?.text, t.path)
+    expect(saved).toBe('Na szybko')
+  })
+
   test('czytanie na głos: start, pauza, wznowienie, koniec', async ({ page }) => {
     await page.addInitScript(() => {
       // Udawany syntezator — w testach nic nie gra, a wypowiedzi są zapisywane.
@@ -505,7 +562,8 @@ test.describe('Nauka osobno dla działów', () => {
   test('przełącznik Studia / Kursy zmienia fiszki i pojęcie, a wybór zostaje', async ({ page }) => {
     test.skip(tree.sections.length < 2, 'tylko jeden dział')
     const [first, second] = tree.sections
-    const count = (scope) => cards.filter((c) => c.path.split('/')[0] === scope).length
+    // Na czystym telefonie wszystkie fiszki są nowe — na dziś przypada dzienny limit.
+    const count = (scope) => Math.min(NEW_PER_DAY, cards.filter((c) => c.path.split('/')[0] === scope).length)
     await open(page)
     const tile = page.locator('.learn-tile', { hasText: 'Powtórki' }).locator('.learn-sub')
     await expect(page.getByRole('button', { name: first.title, exact: true })).toHaveAttribute('aria-pressed', 'true')
@@ -553,6 +611,25 @@ test.describe('Komputer', () => {
     expect(side.x).toBeGreaterThan(main.x + main.width)
     expect(Math.abs(side.y - main.y)).toBeLessThan(40)
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1440)
+  })
+
+  test('fiszki z klawiatury: spacja odsłania, cyfra ocenia', async ({ page }) => {
+    await open(page, 'powtorki')
+    await expect(page.locator('.flashcard-meta')).toContainText(/^1 \/ \d+/)
+    await expect(page.locator('.keys-hint')).toBeVisible()
+    await page.keyboard.press('Space')
+    await expect(page.locator('.flashcard-a')).not.toBeEmpty()
+    await page.keyboard.press('3')
+    await expect(page.locator('.flashcard-meta')).toContainText(/^2 \/ \d+/)
+    const saved = await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('psycho-srs'))).length)
+    expect(saved).toBe(1)
+
+    await open(page, 'egzamin')
+    await page.getByRole('button', { name: /^Zacznij/ }).click()
+    await page.locator('body').click({ position: { x: 5, y: 5 } })
+    await page.keyboard.press('Space')
+    await page.keyboard.press('2')
+    await expect(page.locator('.eyebrow')).toHaveText(/^Egzamin · 2 \//)
   })
 
   test('notatka: spis treści rozwinięty z boku i zostaje przy przewijaniu', async ({ page }) => {

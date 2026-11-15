@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { flushSync } from 'react-dom'
 import { useContent } from '../content.jsx'
 import { countTopics, findNode, siblings } from '../lib/content.js'
-import { CARD_FORMS, countLabel, formatDate, greeting, pad2, relativeTime, subjectColor, TOPIC_FORMS } from '../lib/format.js'
+import { countLabel, formatDate, greeting, pad2, relativeTime, subjectColor, TOPIC_FORMS } from '../lib/format.js'
 import { existingRecent } from '../lib/prefs.js'
 import { recentlyAdded } from '../lib/added.js'
-import { cardStats } from '../lib/srs.js'
+import { dueCards } from '../lib/srs.js'
 import { annotatedPaths } from '../lib/annotations.js'
 import { scopeOf } from '../lib/flashcards.js'
 import { DAILY_HOURS, DAILY_KEY, nextChange, pickForNow } from '../lib/daily.js'
@@ -14,7 +14,7 @@ import { useStored } from '../store.js'
 import { ScopeSwitch } from '../components/ScopeSwitch.jsx'
 import { ATLAS_PATH, EXAM_PATH, MAP_PATH, NOTES_PATH, PROGRESS_PATH, REVIEW_PATH, SEARCH_PATH, toHash } from '../lib/route.js'
 import { navigate } from '../router.js'
-import { useBookmarks, useHighlights, useLearnScope, useNotes, useRecent, useSrs } from '../hooks.js'
+import { useBookmarks, useHighlights, useLearnScope, useNotes, useNow, useRecent, useSrs } from '../hooks.js'
 import { useAuth } from '../auth.jsx'
 import { BrainIcon, CardsIcon, ExamIcon, Icon, LogOutIcon, MapIcon, NotesIcon, ProgressIcon, SearchIcon } from '../components/Icon.jsx'
 import { ThemeToggle } from '../components/ThemeToggle.jsx'
@@ -49,10 +49,14 @@ export function HomeView({ root }) {
 
   const current = recent[0]
   const currentTopic = current && findNode(tree, current.path)
-  const hello = greeting()
   const [scope, setScope] = useLearnScope(root.sections)
   const scopedCards = cards.filter((c) => scopeOf(c) === scope)
-  const stats = cardStats(scopedCards, srs)
+  // Start odświeża się sam, gdy zmienia się pojęcie (najkrótsze okienko) — przy okazji
+  // powitanie i liczba fiszek na dziś są aktualne także po nocy w tle.
+  const now = useNow((t) => nextChange(t, DAILY_HOURS[0]))
+  const hello = greeting(new Date(now))
+  // Tyle samo co na ekranie Powtórek: zaległe i nowe do dziennego limitu.
+  const dueToday = dueCards(scopedCards, srs, now).length
   const annotated = annotatedPaths(notes, highlights).filter(isTopic).length
 
   // Pole na starcie tylko wygląda jak pole: dotknięcie przenosi do wyszukiwarki
@@ -63,7 +67,7 @@ export function HomeView({ root }) {
   }
 
   const learning = [
-    { path: REVIEW_PATH, icon: CardsIcon, title: 'Powtórki', sub: stats.due ? countLabel(stats.due, DUE_FORMS) : countLabel(stats.total, CARD_FORMS) },
+    { path: REVIEW_PATH, icon: CardsIcon, title: 'Powtórki', sub: dueToday ? countLabel(dueToday, DUE_FORMS) : scopedCards.length ? 'na dziś zrobione' : 'brak fiszek' },
     { path: EXAM_PATH, icon: ExamIcon, title: 'Egzamin', sub: 'losowe pytania' },
     { path: PROGRESS_PATH, icon: ProgressIcon, title: 'Postęp', sub: 'co już umiesz' },
     { path: MAP_PATH, icon: MapIcon, title: 'Mapa', sub: 'powiązania tematów' },
@@ -133,10 +137,10 @@ export function HomeView({ root }) {
         <nav className="home-block home-learn" aria-labelledby="learn-label">
           <h2 className="block-label" id="learn-label">Nauka</h2>
           <ScopeSwitch sections={root.sections} value={scope} onChange={setScope} />
-          <TermNow definitions={scopedCards.filter((c) => c.kind === 'definicja')} />
+          <TermNow now={now} definitions={scopedCards.filter((c) => c.kind === 'definicja')} />
           <div className="learn-grid">
             {learning.map(({ path, icon: LearnIcon, title, sub }) => (
-              <a key={path} className={`glass learn-tile${path === REVIEW_PATH && stats.due ? ' learn-tile--due' : ''}`} href={toHash(path)}>
+              <a key={path} className={`glass learn-tile${path === REVIEW_PATH && dueToday ? ' learn-tile--due' : ''}`} href={toHash(path)}>
                 <span className="learn-icon"><LearnIcon /></span>
                 <span className="learn-title">{title}</span>
                 <span className="muted learn-sub">{sub}</span>
@@ -153,11 +157,10 @@ export function HomeView({ root }) {
 // (ta sama co w widżecie na ekranie głównym). „Inne” pokazuje kolejne bez czekania.
 const HOURS_LABEL = { 3: 'co 3 godz.', 6: 'co 6 godz.', 24: 'raz dziennie' }
 
-function TermNow({ definitions }) {
+function TermNow({ definitions, now }) {
   const [hours, setHours] = useStored(DAILY_KEY, DAILY_HOURS[0])
   const h = DAILY_HOURS.includes(hours) ? hours : DAILY_HOURS[0]
   const [skip, setSkip] = useState(0)
-  const now = Date.now()
   const term = pickForNow(definitions, now, h, skip)
   if (!term) return null
   const next = new Date(nextChange(now, h))

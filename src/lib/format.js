@@ -14,6 +14,15 @@ export function countLabel(n, forms) {
 
 export const TOPIC_FORMS = ['temat', 'tematy', 'tematów']
 
+// „3 z 4 tematów”, „1 z 1 tematu” — po „z” idzie dopełniacz, więc osobne formy: [jednego, wielu].
+export function outOf(part, whole, [one, many]) {
+  return `${part} z ${whole} ${whole === 1 ? one : many}`
+}
+
+export const TOPIC_OF = ['tematu', 'tematów']
+export const CARD_OF = ['fiszki', 'fiszek']
+export const QUESTION_OF = ['pytania', 'pytań']
+
 const MONTHS_SHORT = ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź', 'lis', 'gru']
 const MONTHS_LONG = ['stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca', 'lipca', 'sierpnia',
   'września', 'października', 'listopada', 'grudnia']
@@ -64,4 +73,6 @@ export function subjectColor(name) {
 }
 
 export const CARD_FORMS = ['fiszka', 'fiszki', 'fiszek']
+export const QUESTION_FORMS = ['pytanie', 'pytania', 'pytań']
+export const DEFINITION_FORMS = ['definicja', 'definicje', 'definicji']
 export const DAY_FORMS = ['dzień', 'dni', 'dni']

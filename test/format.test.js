@@ -1,12 +1,18 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { countLabel, formatDate, greeting, pad2, plural, relativeTime, subjectColor, TOPIC_FORMS } from '../src/lib/format.js'
+import { CARD_OF, countLabel, outOf, TOPIC_OF, formatDate, greeting, pad2, plural, relativeTime, subjectColor, TOPIC_FORMS } from '../src/lib/format.js'
 
 test('plural: polska odmiana', () => {
   const got = [0, 1, 2, 4, 5, 11, 12, 14, 21, 22, 25, 102, 112].map((n) => countLabel(n, TOPIC_FORMS))
   assert.deepEqual(got, ['0 tematów', '1 temat', '2 tematy', '4 tematy', '5 tematów', '11 tematów', '12 tematów',
     '14 tematów', '21 tematów', '22 tematy', '25 tematów', '102 tematy', '112 tematów'])
   assert.equal(plural(3, ['kurs', 'kursy', 'kursów']), 'kursy')
+})
+
+test('outOf: po „z” dopełniacz', () => {
+  assert.equal(outOf(0, 4, TOPIC_OF), '0 z 4 tematów')
+  assert.equal(outOf(1, 1, TOPIC_OF), '1 z 1 tematu')
+  assert.equal(outOf(3, 22, CARD_OF), '3 z 22 fiszek')
 })
 
 test('formatDate: krótko i długo, inne formaty bez zmian', () => {

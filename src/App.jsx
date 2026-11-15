@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useAuth } from './auth.jsx'
 import { ContentProvider, useContent } from './content.jsx'
 import { findNode } from './lib/content.js'
-import { ATLAS_PATH, EXAM_PATH, legacyPath, MAP_PATH, NOTES_PATH, PROGRESS_PATH, REVIEW_PATH, SEARCH_PATH, toHash } from './lib/route.js'
+import { ATLAS_PATH, EXAM_PATH, legacyPath, MAP_PATH, NOTES_PATH, PROGRESS_PATH, restoresScroll, REVIEW_PATH, SEARCH_PATH, toHash } from './lib/route.js'
 import { useRoute } from './router.js'
 import { HomeView } from './views/HomeView.jsx'
 import { SectionView } from './views/SectionView.jsx'
@@ -56,7 +56,7 @@ function Shell({ children }) {
 
 function Screens() {
   const { tree } = useContent()
-  const { path, q } = useRoute()
+  const { path, q, nav } = useRoute()
   // Ostatnie zapytanie zostaje, żeby po wejściu w wynik i powrocie do lupy
   // nie trzeba było go wpisywać od nowa.
   const [lastQuery, setLastQuery] = useState('')
@@ -71,9 +71,24 @@ function Screens() {
     if (moved && node) window.location.replace(toHash(moved, q))
   }, [moved, node, q])
 
+  // Nowy ekran zaczyna się od góry; przy cofaniu i wyjściu „w górę” (z notatki
+  // do listy) wracamy tam, gdzie lista była przewinięta — nie trzeba szukać od nowa.
+  const scrolls = useRef(new Map())
+  const shown = useRef(null)
+  useLayoutEffect(() => {
+    const from = shown.current
+    shown.current = path
+    // Pierwsze wejście i odświeżenie strony zostawiamy przeglądarce.
+    if (from === null) return
+    window.scrollTo(0, restoresScroll(nav, from, path) ? scrolls.current.get(path) || 0 : 0)
+  }, [path, nav])
   useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [path])
+    const save = () => {
+      if (shown.current !== null) scrolls.current.set(shown.current, window.scrollY)
+    }
+    window.addEventListener('scroll', save, { passive: true })
+    return () => window.removeEventListener('scroll', save)
+  }, [])
 
   useEffect(() => {
     const title = appScreen ? TITLES[path] : node && node.path ? node.title : ''

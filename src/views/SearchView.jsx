@@ -22,7 +22,7 @@ export function SearchView({ initialQuery, onQueryChange }) {
   useEffect(() => {
     onQueryChange(query)
     const hash = toHash(SEARCH_PATH, trimmed)
-    if (window.location.hash !== hash) window.history.replaceState(null, '', hash)
+    if (window.location.hash !== hash) window.history.replaceState(window.history.state, '', hash)
   }, [query, trimmed, onQueryChange])
 
   return (

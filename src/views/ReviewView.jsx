@@ -7,7 +7,7 @@ import { CARD_FORMS, countLabel, DAY_FORMS } from '../lib/format.js'
 import { findNode } from '../lib/content.js'
 import { REVIEW_PATH, toHash } from '../lib/route.js'
 import { navigate } from '../router.js'
-import { useLearnScope, useSrs } from '../hooks.js'
+import { useKeys, useLearnScope, useSrs } from '../hooks.js'
 import { useStored } from '../store.js'
 import { safeInline } from '../sanitize.js'
 import { Topbar } from '../components/Topbar.jsx'
@@ -100,6 +100,20 @@ function Session({ pool, all }) {
     setShown(false)
   }
 
+  // Na komputerze: spacja albo Enter odsłania odpowiedź, 1–4 to oceny po kolei.
+  useKeys((key) => {
+    if (!card) return false
+    if (!shown) {
+      if (key !== ' ' && key !== 'Enter') return false
+      setShown(true)
+      return true
+    }
+    const g = GRADES[Number(key) - 1]
+    if (!g) return false
+    rate(g.value)
+    return true
+  })
+
   if (!card) {
     return (
       <section className="glass glass--accent flashcard flashcard--done">
@@ -137,12 +151,14 @@ function Session({ pool, all }) {
               </button>
             ))}
           </div>
+          <p className="muted keys-hint">Klawisze 1–4</p>
         </>
       ) : (
         <button type="button" className="btn-accent flashcard-show" onClick={() => setShown(true)}>
           Pokaż odpowiedź
         </button>
       )}
+      {!shown && <p className="muted keys-hint">Spacja</p>}
     </section>
   )
 }
