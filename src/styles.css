@@ -1392,6 +1392,11 @@ mark {
   background: transparent;
 }
 
+/* Telefon: ramka ma wysokość treści atlasu (AtlasView), więc przewija się sama strona. */
+.atlas-frame--auto {
+  min-height: 0;
+}
+
 /* ---------- Nauka na starcie ---------- */
 
 .learn-grid {
