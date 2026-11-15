@@ -72,6 +72,7 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible,summary:focus-
 .stage{padding:10px;position:sticky;top:10px}
 @media (max-width:900px){.stage{position:static}}
 .stage-top{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+@media (max-width:520px){.stage-top{flex-wrap:wrap}.viewscroll{flex-basis:100%}#views{display:flex;flex-wrap:wrap;border-radius:12px}#views button{flex:1 1 auto}}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface2);flex-wrap:nowrap}
 .seg button{font-size:13px;border:0;background:transparent;color:var(--ink);padding:8px 11px;cursor:pointer;min-height:38px;white-space:nowrap}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
@@ -98,7 +99,22 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible,summary:focus-
 .legend{position:absolute;left:10px;top:10px;display:flex;flex-direction:column;gap:3px;font-size:11.5px;color:var(--ink);background:color-mix(in srgb,var(--surface) 82%,transparent);border:1px solid var(--line);border-radius:12px;padding:7px 10px;backdrop-filter:blur(8px)}
 .legend i{display:inline-block;width:11px;height:11px;border-radius:4px;margin-right:6px;vertical-align:-1px}
 .legend[hidden]{display:none}
-@media (max-width:520px){.legend{display:none}.scale{width:165px}}
+@media (max-width:520px){
+  /* telefon: legenda nie zasłania mózgu, tylko leży pod nim w jednym rzędzie */
+  .legend{position:static;flex-direction:row;flex-wrap:wrap;gap:4px 12px;border:0;border-top:1px solid var(--line);border-radius:0;background:var(--surface);backdrop-filter:none;padding:7px 10px}
+  .scale{width:165px}
+}
+.hint.gone{opacity:0;transition:opacity .4s}
+/* pasek „co jest wybrane” pod modelem – na telefonie opis jest daleko w dole, więc tu jest skrót i skok do opisu */
+.selbar{display:flex;align-items:center;gap:8px;margin-top:8px;padding:8px 8px 8px 12px;border:1px solid var(--line);border-left:4px solid var(--c,var(--sel));border-radius:12px;background:var(--surface2)}
+.selbar[hidden]{display:none}
+.selbar-dot{display:none}
+.selbar-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.selbar-txt b{font-size:14.5px;line-height:1.25}
+.selbar-txt span{font-size:12.5px;color:var(--muted);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.selbar .tbtn{flex:none}
+.selbar-x{font-size:18px;min-width:44px;justify-content:center}
+@media (min-width:901px){.selbar-more{display:none}}
 .controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px 16px;margin-top:10px}
 .cgroup{min-width:0}
 .cgroup h2{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0 0 6px}
@@ -123,13 +139,18 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--accent);height:30px}
 .panel li{margin:3px 0}
 .kicker{font-size:12px;color:var(--accent);margin:0 0 4px;font-weight:600}
 .enote{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:7px 11px;font-size:13.5px;margin:0 0 8px}
-.rows{display:grid;gap:6px}
+.rows{display:grid;gap:6px;grid-template-columns:minmax(0,1fr)}
+/* wąska ramka w aplikacji: karta nie może być szersza od panelu (inaczej tekst ucieka za ekran) */
+.row{min-width:0}.row>*{min-width:0;overflow-wrap:anywhere}
+.panel,.stage,.atlas>*{min-width:0}
 .row{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;padding:9px 11px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);cursor:pointer;text-align:left;font:inherit;color:inherit;min-height:44px}
 .row:hover{border-color:var(--accent)}
 .row.on{border-color:var(--c,var(--accent));box-shadow:inset 3px 0 0 var(--c,var(--accent))}
 .row b{font-weight:600}
 .row small{grid-column:1/-1;color:var(--muted);font-size:12.5px}
-.tag{font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:7px;white-space:nowrap;align-self:start}
+.tag{font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:7px;white-space:nowrap;align-self:start;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+/* długi opis zmiany (np. „przetwarzanie twarzy, mowy”) zawija się zamiast uciekać za ekran */
+.row .tag,.ctxrole .tag{white-space:normal;justify-self:start;display:inline-block}
 .tag.up{color:var(--up);background:color-mix(in srgb,var(--up) 14%,var(--surface2))}
 .tag.down{color:var(--down);background:color-mix(in srgb,var(--down) 14%,var(--surface2))}
 .tag.other{color:var(--muted);background:var(--surface3)}
@@ -275,9 +296,10 @@ details.more summary{cursor:pointer;font-size:13.5px;font-weight:600;min-height:
         <div id="labels"></div>
         <div class="legend" id="lobeleg"></div>
         <div class="scale" id="scale" hidden><div id="scale-label"></div><div class="grad"></div><div class="ends"><span id="scale-min"></span><span>0</span><span id="scale-max"></span></div></div>
-        <div class="hint">przeciągnij: obrót · szczypanie lub kółko: zoom · dotknięcie: szczegóły</div>
+        <div class="hint" id="hint">Przeciągnij, żeby obrócić · dotknij obszaru</div>
         <div class="tip" id="tip"></div>
       </div>
+      <div class="selbar" id="selbar" hidden><span class="selbar-dot" aria-hidden="true"></span><div class="selbar-txt"><b id="selbar-name"></b><span id="selbar-sum"></span></div><button class="tbtn selbar-more" id="selbar-more">Opis</button><button class="tbtn selbar-x" id="selbar-x" aria-label="Wyczyść wybór">×</button></div>
       <div id="flatinfo" class="flatinfo" hidden></div>
       <div class="controls">
         <div class="cgroup">
@@ -386,8 +408,9 @@ details.more summary{cursor:pointer;font-size:13.5px;font-weight:600;min-height:
     <pre id="jsonpre"></pre>
   </section>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<!-- three.js r128 (MIT) leży obok strony, więc atlas działa bez internetu i bez CDN -->
+<script src="lib/three.min.js"></script>
+<script src="lib/OrbitControls.js"></script>
 <script>/*DATA*/</script>
 <script>/*GEO*/</script>
 <script>/*EXTRAS*/</script>

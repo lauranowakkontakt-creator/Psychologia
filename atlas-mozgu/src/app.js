@@ -557,7 +557,7 @@ function setLabels(defs){
 }
 const _v=new THREE.Vector3();
 function updateLabels(){
-  const w=box.clientWidth,h=box.clientHeight;
+  const w=canvas.clientWidth,h=canvas.clientHeight;
   for(const d of labelDefs){
     const a=d.anchor(); if(!a){d.el.style.display="none";continue;}
     _v.copy(a); if(mirror&&!d.fixed) _v.x*=-1; _v.project(camera);
@@ -624,13 +624,18 @@ function pick(ev){
   return null;
 }
 let down=null;
-canvas.addEventListener("pointerdown",e=>{down=[e.clientX,e.clientY];});
+const hintEl=$("#hint");
+canvas.addEventListener("pointerdown",e=>{down=[e.clientX,e.clientY]; if(hintEl) hintEl.classList.add("gone");});
 canvas.addEventListener("pointerup",e=>{
   if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>5) return; down=null;
   const p=pick(e); tip.style.opacity=0;
   if(p&&p.route){showPathway(p.route.pw,{route:p.route,keep:true,keepContext:true});return;}
-  if(p&&p.region) selectRegion(p.region,p); else clearRegion();
+  if(p&&p.region){ selectRegion(p.region,p); revealSelbar(); } else clearRegion();
 });
+// na telefonie pasek z nazwą może być tuż pod krawędzią ekranu: dosuwamy go, ale tylko o tyle, ile trzeba
+function revealSelbar(){
+  requestAnimationFrame(()=>{const s=$("#selbar"); if(s&&!s.hidden) s.scrollIntoView({block:"nearest",behavior:REDUCED?"auto":"smooth"});});
+}
 function setHover(p){
   const next=p&&p.region?{region:p.region}:null;
   const same=(!next&&!state.hover)||(next&&state.hover&&next.region===state.hover.region);
@@ -645,6 +650,7 @@ canvas.addEventListener("pointermove",e=>{
     const p=pick(e), b=box.getBoundingClientRect();
     if(!p){tip.style.opacity=0;canvas.style.cursor="grab";setHover(null);return;}
     setHover(p.route?null:p);
+    if(p.region&&p.region===state.region){tip.style.opacity=0;canvas.style.cursor="pointer";return;}
     let t=regionName(p); const en=enigmaData();
     if(en&&p.parcel){const d=en.cort[(p.h==="lh"?"L_":"R_")+p.parcel]; if(d!==undefined)t+=` · d = ${fmt(d)}`;}
     if(en&&p.sctx&&p.h){const d=en.sub[(p.h==="lh"?"L":"R")+SCTX_KEY[p.sctx]]; if(d!==undefined)t+=` · d = ${fmt(d)}`;}
@@ -890,7 +896,25 @@ function quick(k){
   else if(k==="sec-hippo"){state.pathways.clear();state.disorder=null;state.network=null;buildNetwork(null);state.region=null;updateSelOverlay();state.glass=false;setSectionMNI("x",-26);labelsForState();legend();renderCurrentPanel();}
   else if(k==="drug-ssri"){setView("left");showDrug("ssri");}
 }
+const selbar=$("#selbar");
+function updSelbar(){
+  const h2=panel.querySelector("h2");
+  const active=state.region||state.disorder||state.network||state.pathways.size;
+  if(!active||!h2){selbar.hidden=true;return;}
+  let sum="", c="var(--sel)";
+  if(state.region){const r=REGIONS[state.region]; sum=(r.functions&&r.functions[0])||"";}
+  else {const p=panel.querySelector("p:not(.latin):not(.kicker):not(.src)"); sum=p?p.textContent:"";}
+  if(!state.region&&state.network){const n=NETWORKS.find(x=>x.name===state.network); if(n) c=n.color;}
+  else if(!state.region&&!state.disorder&&state.pathways.size===1) c=PW[[...state.pathways][0]].color;
+  selbar.style.setProperty("--c",c);
+  $("#selbar-name").textContent=h2.textContent;
+  $("#selbar-sum").textContent=sum.trim();
+  selbar.hidden=false;
+}
+$("#selbar-more").onclick=()=>panel.scrollIntoView({block:"start",behavior:REDUCED?"auto":"smooth"});
+$("#selbar-x").onclick=()=>clearAll();
 function wirePanel(){
+  updSelbar();
   panel.querySelectorAll("[data-dis]").forEach(b=>b.onclick=()=>{state.enigma=true;selectDisorder(b.dataset.dis);});
   panel.querySelectorAll("[data-reg]").forEach(b=>b.onclick=()=>selectRegion(b.dataset.reg));
   panel.querySelectorAll("[data-net]").forEach(b=>b.onclick=()=>selectNetwork(b.dataset.net,{keepRegion:true}));
@@ -1163,4 +1187,21 @@ let last=0, frame=0;
 
 setView("left",true);
 updateClip(); recolor(); legend(); intro();
+})();
+
+// ---------- w aplikacji Psycho: wysokość ramki ----------
+// Na telefonie atlas ma rosnąć razem z treścią, żeby przewijała się jedna strona, a nie „okno w oknie”.
+// Aplikacja (src/views/AtlasView.jsx) ustawia wysokość ramki z tej wiadomości; h=null = zwykła wysokość.
+(function(){
+  if(window.top===window.self||!window.parent) return;
+  const narrow=window.matchMedia("(max-width:900px)");
+  let last=-1, raf2=0;
+  const send=()=>{raf2=0;
+    const h=narrow.matches?Math.ceil(document.documentElement.getBoundingClientRect().height):null;
+    if(h===last) return; last=h;
+    try{window.parent.postMessage({type:"psycho-atlas-height",h},location.origin);}catch(e){}
+  };
+  const queue=()=>{if(!raf2) raf2=requestAnimationFrame(send);};
+  if(window.ResizeObserver) new ResizeObserver(queue).observe(document.documentElement);
+  window.addEventListener("resize",queue); narrow.addEventListener&&narrow.addEventListener("change",queue); queue();
 })();

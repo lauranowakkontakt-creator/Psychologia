@@ -17,7 +17,14 @@ Moduł edukacyjny do aplikacji psychologicznej Laury (dla studentów i młodych 
 - `src/meaning.js`: `MEANING` (opis „co to znaczy” dla każdej pary zaburzenie:obszar) i `PW_NOTES` (jak zaburzenie wiąże się ze szlakiem). Każda para w `DISORDERS` musi mieć wpis w `MEANING` (pilnuje tego `e2e/atlas.spec.js`).
 - Zaznaczenie obszaru to świecąca nakładka (`updateSelOverlay`), a rysowanie jest na żądanie (render tylko przy zmianie), żeby nie obciążać telefonu.
 - Wybrane zaburzenie zostaje jako kontekst przy klikaniu obszarów i szlaków; szlaki w panelu zaburzenia pokazują się tylko, gdy `PATHWAYS[].disorders` je wymienia.
-- Po zmianach w `src/` zawsze `python3 scripts/build.py` (kopiuje też do `../public/atlas/`).
+- Po zmianach w `src/` zawsze `python3 scripts/build.py` (kopiuje też do `../public/atlas/`, razem z `lib/`).
+- three.js r128 i OrbitControls są w `lib/` (bez CDN): atlas działa bez internetu, pilnuje tego `e2e/boty.spec.js`.
+- Telefon: pod modelem pasek wyboru `#selbar` (nazwa, pierwsza funkcja, „Opis” skacze do panelu, × czyści), uzupełniany
+  w `updSelbar()` przy każdym rysowaniu panelu (`wirePanel`). Legenda kolorów leży pod modelem zamiast na nim.
+- W aplikacji atlas wysyła swoją wysokość (`{type:"psycho-atlas-height",h}`), a `AtlasView` ustawia ją ramce,
+  więc na telefonie przewija się jedna strona (na szerokim ekranie h=null i zostaje stała wysokość).
+- Boty w `e2e/boty.spec.js`: klikają każdą pozycję w każdej zakładce i sprawdzają tytuł panelu, pasek wyboru i to,
+  że nic nie wystaje za ekran.
 
 ## Struktura
 - `src/template.html` — HTML + CSS (tokeny kolorów w `:root`, jasny i ciemny motyw). Placeholdery `/*DATA*/ /*GEO*/ /*EXTRAS*/ /*APP*/`.
@@ -32,7 +39,7 @@ Moduł edukacyjny do aplikacji psychologicznej Laury (dla studentów i młodych 
 ## Budowanie
 ```
 python3 scripts/build.py      # src + data → dist/index.html
-open dist/index.html          # podgląd (three.js ładuje się z cdnjs/jsdelivr, potrzebny internet)
+open dist/index.html          # podgląd; three.js r128 leży w lib/ i jest kopiowany obok strony (działa offline)
 ```
 
 ## Regeneracja siatek (rzadko potrzebna)
