@@ -103,6 +103,8 @@ Lint i testy je pomijają, a `npm run check` czyści je na starcie (`npm run cle
 - Testy e2e czytają prawdziwy `content/` (nie zakładają „Temat 1”) — nowe notatki są sprawdzane automatycznie:
   każda się otwiera, każdy ekran w obu motywach przechodzi zasady telefonu (`e2e/telefon.spec.js`: brak poziomego
   przewijania, cele dotyku ≥ 44 px, pola ≥ 16 px, zero emotek) i dostępności WCAG AA (`e2e/dostepnosc.spec.js`).
+  Boty-testerzy (`e2e/boty.spec.js`): „zwiedzacz” obchodzi każdy link `#/...` w aplikacji (martwe linki, jazda w bok),
+  „klikacz atlasu” klika każdą pozycję atlasu mózgu w ramce aplikacji, a trzeci sprawdza, że atlas działa bez internetu.
 - Struktura: `src/lib/` czysta logika, `src/views/` ekrany, `src/components/` klocki, `src/hooks.js` stan,
   `src/content.jsx` drzewo/indeks/fiszki/linki z plików, `src/auth.jsx` logowanie i wczytanie treści, `src/source/` tryby.
   Ekrany nauki: `#/powtorki`, `#/egzamin`, `#/postep`, `#/mapa`, `#/dopiski` (`APP_PATHS` w `src/lib/route.js` —

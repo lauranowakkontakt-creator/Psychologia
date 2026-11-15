@@ -69,12 +69,14 @@ test.describe('Atlas mózgu: bot-użytkownik', () => {
     await page.locator('#tab-dis [data-dis="adhd"]').click()
     const buttons = page.locator('#pw-btns [data-pw]')
     const count = await buttons.count()
-    for (let i = 0; i < count; i++) await buttons.nth(i).click()
+    // dispatchEvent zamiast click(): przy animowanych szlakach render bez karty graficznej (CI) ma rzadkie klatki,
+    // a click() czeka na „stabilny” przycisk – 12 kliknięć potrafiło przekroczyć 3 minuty. Stan sprawdzamy tak samo.
+    for (let i = 0; i < count; i++) await buttons.nth(i).dispatchEvent('click')
     expect(await page.evaluate(() => window.ATLAS._state.pathways.size)).toBe(count)
     expect(await page.evaluate(() => window.ATLAS._state.disorder)).toBe('adhd')
     // przyciski szlaków niezwiązanych z ADHD są przyciemnione, związane podświetlone
     await expect(page.locator('#pw-btns .rel').first()).toBeVisible()
-    for (let i = 0; i < count; i++) await buttons.nth(i).click()
+    for (let i = 0; i < count; i++) await buttons.nth(i).dispatchEvent('click')
     expect(await page.evaluate(() => window.ATLAS._state.pathways.size)).toBe(0)
     // bez zaburzenia szlak pokazuje własny panel
     await page.locator('#panel #clearhl').click()
