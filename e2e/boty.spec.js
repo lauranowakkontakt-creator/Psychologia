@@ -97,8 +97,14 @@ test.describe('Bot-klikacz atlasu (w aplikacji)', () => {
     const barBox = await bar.boundingBox()
     expect(barBox.y + barBox.height, 'pasek wyboru poza ekranem').toBeLessThan(page.viewportSize().height + (await page.evaluate(() => scrollY)))
 
+    // „Opis” przewija płynnie, a na serwerze CI (render 3D bez karty graficznej) klatki są rzadkie,
+    // więc samo przewijanie trwa kilka sekund – stąd dłuższy limit niż domyślne 5 s.
+    const before = await page.evaluate(() => scrollY)
     await frame.locator('#selbar-more').click()
-    await expect.poll(async () => (await frame.locator('#panel h2').boundingBox()).y).toBeLessThan(page.viewportSize().height)
+    await expect
+      .poll(async () => (await frame.locator('#panel h2').boundingBox()).y, { timeout: 20_000 })
+      .toBeLessThan(page.viewportSize().height)
+    expect(await page.evaluate(() => scrollY), '„Opis” nie przewinął strony').toBeGreaterThan(before)
     await frame.locator('#selbar-x').click()
     await expect(bar).toBeHidden()
     expect(await inner.evaluate(() => window.ATLAS._state.region)).toBeNull()
