@@ -284,14 +284,20 @@ test.describe('Adresy', () => {
 
     // Start przewinięty w dół, wejście w dział i Wstecz w aplikacji — start tam, gdzie był.
     await open(page)
+    // Kafelek najpierw na ekran (na niższym telefonie jest pod zgięciem) — dopiero wtedy
+    // zapamiętujemy miejsce, bo samo kliknięcie też przewinęłoby do niego stronę.
+    const tile = page.locator('.learn-tile', { hasText: 'Postęp' })
     await page.evaluate(() => window.scrollTo(0, 200))
     await expect.poll(scrollY).toBe(200)
-    await page.locator('.learn-tile', { hasText: 'Postęp' }).click()
+    await tile.scrollIntoViewIfNeeded()
+    const before = await scrollY()
+    expect(before).toBeGreaterThan(0)
+    await tile.click()
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Postęp')
     expect(await scrollY()).toBe(0)
     await page.getByRole('link', { name: 'Wstecz' }).click()
     await expect(page.locator('.logo')).toBeVisible()
-    await expect.poll(scrollY).toBe(200)
+    await expect.poll(scrollY).toBe(before)
   })
 })
 
