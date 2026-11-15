@@ -17,6 +17,7 @@ import {
   signOut as fbSignOut,
 } from 'firebase/auth'
 import {
+  clearIndexedDbPersistence,
   collection,
   doc,
   getDoc,
@@ -27,10 +28,11 @@ import {
   persistentLocalCache,
   persistentMultipleTabManager,
   setDoc,
+  terminate,
 } from 'firebase/firestore'
 import { unpackChunks } from '../lib/chunks.js'
 import { mergeValue, sameValue, SYNCED } from '../lib/sync.js'
-import { readStored, subscribeWrites, writeFromSync, writeStored } from '../store.js'
+import { readStored, reportProblem, subscribeWrites, writeFromSync, writeStored } from '../store.js'
 
 export const MODE = 'firebase'
 export const initialContent = null
@@ -81,8 +83,21 @@ export async function signIn() {
   }
 }
 
-export function signOut() {
-  return fbSignOut(auth)
+// Wylogowanie sprząta urządzenie: dane nauki tej osoby i notatki z pamięci podręcznej znikają,
+// żeby następna osoba na tym telefonie nie dostała cudzego postępu ani notatek bez dostępu.
+// Najpierw dosyłamy do chmury to, co jeszcze czeka — po ponownym zalogowaniu wszystko wraca.
+export async function signOut() {
+  await flushSync()
+  await fbSignOut(auth)
+  clearUserData()
+  writeStored(VERSION_KEY, undefined)
+  try {
+    await terminate(db)
+    await clearIndexedDbPersistence(db)
+  } catch (e) {
+    console.warn('Czyszczenie pamięci notatek:', e?.code || e)
+  }
+  window.location.reload()
 }
 
 // Czy adres jest na liście `dozwoleni`. Reguły pozwalają każdemu zalogowanemu
@@ -128,25 +143,56 @@ export async function loadContent() {
 // Wartość leży jako tekst JSON (Firestore nie musi znać jej kształtu), `at` to czas
 // ostatniej zmiany na urządzeniu — potrzebny tam, gdzie wygrywa nowsza wersja.
 const SYNC_AT_KEY = 'psycho-sync-at'
+// Czyje dane leżą na tym urządzeniu (uid) — inna osoba zaczyna od czystego stanu.
+const OWNER_KEY = 'psycho-owner'
 const PUSH_DELAY = 1500
+const FLUSH_TIMEOUT = 3000
+
+let flushSync = async () => {}
+
+function clearUserData() {
+  for (const key of [...Object.keys(SYNCED), SYNC_AT_KEY, OWNER_KEY]) writeFromSync(key, undefined)
+}
 
 export function startSync(user) {
+  const owner = readStored(OWNER_KEY, null)
+  if (owner && owner !== user.uid) clearUserData()
+  writeStored(OWNER_KEY, user.uid)
+
   const col = collection(db, 'uzytkownicy', user.uid, 'dane')
   const timers = new Map()
   const localAt = (key) => readStored(SYNC_AT_KEY, {})[key] || 0
   const remote = new Map()
 
+  const send = (key) => {
+    timers.delete(key)
+    const value = readStored(key, undefined)
+    if (value === undefined) return null
+    const prev = remote.get(key)
+    if (prev && sameValue(prev.value, value)) return null
+    const at = localAt(key) || Date.now()
+    remote.set(key, { value, at })
+    // Bez internetu zapis czeka w kolejce i nie jest błędem; błąd to odmowa chmury
+    // (np. za duży stan fiszek albo brak dostępu) — wtedy mówimy o tym na ekranie.
+    return setDoc(doc(col, key), { value: JSON.stringify(value), at }).catch((e) => {
+      console.warn('Synchronizacja:', e?.code || e)
+      remote.delete(key)
+      reportProblem('sync')
+    })
+  }
+
   const push = (key) => {
     clearTimeout(timers.get(key))
-    timers.set(key, setTimeout(() => {
-      const value = readStored(key, undefined)
-      if (value === undefined) return
-      const prev = remote.get(key)
-      if (prev && sameValue(prev.value, value)) return
-      const at = localAt(key) || Date.now()
-      remote.set(key, { value, at })
-      setDoc(doc(col, key), { value: JSON.stringify(value), at }).catch((e) => console.warn('Synchronizacja:', e?.code || e))
-    }, PUSH_DELAY))
+    timers.set(key, setTimeout(() => send(key), PUSH_DELAY))
+  }
+
+  // Przed wylogowaniem: wyślij od razu to, co czeka, ale nie czekaj w nieskończoność bez internetu.
+  flushSync = async () => {
+    const pending = [...timers.keys()].map((key) => {
+      clearTimeout(timers.get(key))
+      return send(key)
+    })
+    await Promise.race([Promise.all(pending), new Promise((resolve) => setTimeout(resolve, FLUSH_TIMEOUT))])
   }
 
   const stopWrites = subscribeWrites((key) => {
@@ -180,9 +226,13 @@ export function startSync(user) {
         if (!remote.has(key) && readStored(key, undefined) !== undefined) push(key)
       }
     }
-  }, (e) => console.warn('Synchronizacja:', e?.code || e))
+  }, (e) => {
+    console.warn('Synchronizacja:', e?.code || e)
+    reportProblem('sync')
+  })
 
   return () => {
+    flushSync = async () => {}
     stopWrites()
     stopSnapshot()
     for (const t of timers.values()) clearTimeout(t)

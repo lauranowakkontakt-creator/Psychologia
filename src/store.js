@@ -17,7 +17,33 @@ export function writeStored(key, value) {
   try {
     if (value === undefined) window.localStorage.removeItem(key)
     else window.localStorage.setItem(key, JSON.stringify(value))
-  } catch {}
+    return true
+  } catch {
+    // Pełna pamięć przeglądarki albo zablokowane dane — mówimy o tym, zamiast gubić po cichu.
+    reportProblem('storage')
+    return false
+  }
+}
+
+// Kłopoty, o których użytkowniczka powinna wiedzieć (pasek u góry, src/components/ProblemBar.jsx):
+//   'storage' – zapis w pamięci telefonu się nie udał, 'sync' – chmura odrzuciła zapis.
+let problem = null
+const problemListeners = new Set()
+
+export function reportProblem(code) {
+  if (problem === code) return
+  problem = code
+  for (const fn of problemListeners) fn(problem)
+}
+
+export function useProblem() {
+  const [value, setValue] = useState(problem)
+  useEffect(() => {
+    problemListeners.add(setValue)
+    setValue(problem)
+    return () => problemListeners.delete(setValue)
+  }, [])
+  return [value, () => reportProblem(null)]
 }
 
 // Jednorazowo przepisuje zapisane adresy, np. po przeniesieniu notatek.
@@ -48,6 +74,14 @@ export function writeFromSync(key, value) {
   notify(key, value)
 }
 
+// Zapis spoza komponentu (np. wczytanie kopii zapasowej): tak samo jak zmiana w aplikacji —
+// ekrany się odświeżają, a synchronizacja wysyła nową wartość.
+export function writeLocal(key, value) {
+  writeStored(key, value)
+  notify(key, value)
+  for (const fn of writeListeners) fn(key, value)
+}
+
 // Stan zapisywany w localStorage i wspólny dla wszystkich komponentów,
 // które używają tego samego klucza (zakładka dodana w notatce od razu
 // widać na starcie).
@@ -69,9 +103,7 @@ export function useStored(key, fallback) {
       const current = readStored(key, fallbackRef.current)
       const resolved = typeof next === 'function' ? next(current) : next
       if (resolved === current) return
-      writeStored(key, resolved)
-      notify(key, resolved)
-      for (const fn of writeListeners) fn(key, resolved)
+      writeLocal(key, resolved)
     },
     [key],
   )

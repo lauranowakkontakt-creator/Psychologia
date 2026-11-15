@@ -20,6 +20,21 @@ npm run dev
 Notatka to plik Markdown w `content/<dział>/<temat>.md`, a układ folderów jest układem aplikacji
 (szczegóły w `CLAUDE.md`).
 
+## Po dodaniu notatki
+
+```bash
+npm run notatka
+```
+
+Sprawdza treść (testy w Node) i wysyła notatki do Firestore — po chwili są na telefonie.
+Klucz serwisowy leży w `klucz-serwisowy.json` w folderze projektu (poza gitem).
+Zmiana kodu idzie zwykłym pushem: testy, a po nich publikacja strony.
+
+## Kopia zapasowa
+
+Ekran „Postęp” ma na dole „Pobierz kopię” — plik z fiszkami, przeczytanymi notatkami, zakładkami,
+dopiskami i zaznaczeniami. „Wczytaj kopię” łączy plik z tym, co jest na urządzeniu.
+
 ## Testy
 
 ```bash
@@ -32,4 +47,4 @@ i dostępności WCAG AA.
 
 ## Technologie
 
-React 18, Vite 5, vite-plugin-pwa, Firebase (Authentication, Firestore, Hosting), Playwright.
+React 18, Vite 5, vite-plugin-pwa, Firebase (Authentication, Firestore), Playwright.

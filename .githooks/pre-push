@@ -1,6 +1,23 @@
 #!/bin/sh
 # Przed każdym wysłaniem na GitHuba: lint, testy logiki i testy aplikacji
 # w przeglądarkach (iPhone + Android). Jeśli coś nie przechodzi, push się nie wykona.
+# Gdy zmieniły się same notatki (content/), idą tylko szybkie testy — lint i testy treści;
+# testy w przeglądarkach robi wtedy GitHub Actions po pushu.
 # Awaryjnie (świadomie!): git push --no-verify
-echo "Sprawdzam aplikację przed wysłaniem (npm run check)…"
-npm run check
+tylko_tresc=tak
+cokolwiek=nie
+while read -r _ref lokalny _zdalny_ref zdalny; do
+  case "$lokalny" in *[!0]*) ;; *) continue ;; esac            # usuwanie gałęzi
+  case "$zdalny" in *[!0]*) ;; *) tylko_tresc=nie; continue ;; esac  # nowa gałąź: pełne testy
+  pliki=$(git diff --name-only "$zdalny" "$lokalny" 2>/dev/null) || { tylko_tresc=nie; continue; }
+  [ -n "$pliki" ] && cokolwiek=tak
+  if printf '%s\n' "$pliki" | grep -v '^content/' | grep -q .; then tylko_tresc=nie; fi
+done
+
+if [ "$tylko_tresc" = tak ] && [ "$cokolwiek" = tak ]; then
+  echo "Zmieniły się tylko notatki — szybkie sprawdzenie (npm run check:tresc)…"
+  npm run check:tresc
+else
+  echo "Sprawdzam aplikację przed wysłaniem (npm run check)…"
+  npm run check
+fi

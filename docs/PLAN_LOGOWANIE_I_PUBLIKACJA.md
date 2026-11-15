@@ -16,7 +16,7 @@ Wybrane: **nowy projekt Firebase** i **logowanie przez Google**.
 - Synchronizacja zakładek, historii, postępu, fiszek, dopisków i zaznaczeń między urządzeniami.
 - `npm run test:bez-notatek` — buduje wersję z logowaniem i sprawdza, że nie ma w niej żadnej notatki
   (jest w `npm run check`). `e2e-logowanie/` — test ekranu logowania.
-- `firebase.json` — hosting (Firebase Hosting, darmowy) + reguły.
+- `firebase.json` — reguły Firestore (`npm run deploy:reguly`).
 
 **Zrobione w konsoli Firebase (2026-10-23):** projekt `psycho-b354b`, logowanie Google, Firestore `(default)`
 w `eur3`, aplikacja internetowa (konfiguracja w `.env.firebase`, poza gitem), kolekcja `dozwoleni`, klucz serwisowy
@@ -36,16 +36,19 @@ Kolejna osoba z dostępem: Firestore -> `dozwoleni` -> *Add document*, ID = adre
    - Firebase -> Authentication -> Settings -> *Authorized domains* -> dodać `lauranowakkontakt-creator.github.io`,
    - wysłać reguły Firestore (raz i po każdej zmianie `firestore.rules`):
      `npx firebase-tools deploy --only firestore:rules --project psycho-b354b`.
-2. Firebase Hosting (`npm run deploy:firebase`, `psycho-b354b.web.app`) zostaje jako zapas — nie jest potrzebny.
+2. Firebase Hosting usunięty (2026-11-15) — strona stoi tylko na GitHub Pages.
 3. Publiczne repo `Psychologia` (sam kod) — patrz niżej.
 
-**Po zmianie notatek:** `GOOGLE_APPLICATION_CREDENTIALS=/ścieżka/klucz.json npm run wyslij-notatki`.
+**Po zmianie notatek:** `npm run notatka` (szybkie testy treści + wysyłka; klucz w `klucz-serwisowy.json`
+w folderze projektu albo w zmiennej `GOOGLE_APPLICATION_CREDENTIALS`).
 
 ## Publiczne repo `Psychologia`
 
 - To repo (`Psycho`) zostaje prywatne i jest miejscem pracy: kod + notatki + pełna historia.
 - `Psychologia` dostaje sam kod: `npm run publikuj-kod -- <folder z klonem Psychologia>` kopiuje ostatni commit
-  bez `content/` i dopisuje `content/` do `.gitignore` klonu. Commit i push robi się w klonie.
+  bez `content/`, dopisuje `content/` do `.gitignore` klonu i wycina z plików `.md` fragmenty między
+  `<!-- prywatne -->` a `<!-- /prywatne -->` (ścieżki na dysku, klucze, opis prywatnego repo — tak je oznaczamy).
+  Commit i push robi się w klonie albo od razu: `npm run publikuj-kod -- <klon> --wyslij`.
 - Testy w publicznym repo idą na przykładowych notatkach z `przyklad/content/` (ten sam układ działów,
   własne krótkie teksty). GitHub Actions kopiuje je do `content/`, gdy prawdziwych nie ma.
 - Klon ma własny klucz SSH (deploy key z prawem zapisu), tak jak `Psycho`.
@@ -64,8 +67,7 @@ Kolejna osoba z dostępem: Firestore -> `dozwoleni` -> *Add document*, ID = adre
   reguły nie oddadzą mu ani jednej notatki.
 - Dodatkowe szyfrowanie AES po naszej stronie nie wnosi wiele: klucz i tak leżałby za tymi samymi regułami.
   Google szyfruje dane na serwerach i w przesyle.
-- **GitHub:** domyślna gałąź `test-dostepu` jest pusta, ale `origin/main` nadal ma wszystkie notatki
-  i historię — tego repo **nie** przełączamy na publiczne. Domyślną gałąź warto przestawić z powrotem na `main`
-  (GitHub -> Settings -> General -> Default branch), a `test-dostepu` usunąć.
+- **Wylogowanie** czyści z urządzenia dane nauki i notatki z pamięci podręcznej (wracają po zalogowaniu);
+  inna osoba na tym samym telefonie zaczyna od czystego stanu (`psycho-owner`).
 - Reguł Firestore nie da się dziś przetestować lokalnie (emulator wymaga Javy, której nie ma na tym Macu).
   Po instalacji Javy można dopisać testy reguł z `@firebase/rules-unit-testing`.

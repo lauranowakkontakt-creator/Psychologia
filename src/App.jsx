@@ -17,6 +17,9 @@ import { AtlasView } from './views/AtlasView.jsx'
 import { AnnotationsView } from './views/AnnotationsView.jsx'
 import { GateView } from './views/GateView.jsx'
 import { ErrorBoundary } from './components/ErrorBoundary.jsx'
+import { ProblemBar } from './components/ProblemBar.jsx'
+import { reconcileSrs } from './lib/srs.js'
+import { useSrs } from './hooks.js'
 
 export const APP_NAME = 'Psycho'
 
@@ -49,14 +52,23 @@ export default function App() {
 function Shell({ children }) {
   return (
     <div className="app app-bg">
-      <main className="page">{children}</main>
+      <main className="page">
+        <ProblemBar />
+        {children}
+      </main>
     </div>
   )
 }
 
 function Screens() {
-  const { tree } = useContent()
+  const { tree, cards } = useContent()
   const { path, q } = useRoute()
+  const [srs, setSrs] = useSrs()
+
+  // Po poprawce pytania albo przeniesieniu notatki historia powtórek wraca do fiszki.
+  useEffect(() => {
+    setSrs((current) => reconcileSrs(current, cards))
+  }, [cards, srs, setSrs])
   // Ostatnie zapytanie zostaje, żeby po wejściu w wynik i powrocie do lupy
   // nie trzeba było go wpisywać od nowa.
   const [lastQuery, setLastQuery] = useState('')

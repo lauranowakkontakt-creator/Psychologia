@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { allTopics, buildTree } from '../src/lib/content.js'
 import { allCards, cardGroup, extractCards, hashText, reviewSection } from '../src/lib/flashcards.js'
-import { cardStats, dayNumber, dueCards, grade, mergeSrs, NEW_PER_DAY, previewInterval } from '../src/lib/srs.js'
+import { cardStats, dayNumber, dueCards, grade, mergeSrs, NEW_PER_DAY, previewInterval, reconcileSrs } from '../src/lib/srs.js'
 import { examGroups, examResult, pickQuestions, seededRandom } from '../src/lib/exam.js'
 import { isRead, markRead, mergeRead, progressRows } from '../src/lib/progress.js'
 import { loadContentFiles } from './helpers.js'
@@ -185,4 +185,40 @@ test('pojęcie na teraz: to samo w jednym okienku czasu, inne w następnym', asy
   assert.ok(seen.size > 10)
   assert.equal(pickForNow([], t, 3), null)
   assert.notEqual(pickForNow(items, t, 3, 1), pickForNow(items, t, 3))
+})
+
+test('historia powtórek: wraca do fiszki po przeniesieniu notatki i po poprawce pytania', () => {
+  const card = (path, q, a) => ({ id: `${path}#${hashText(q)}`, path, question: q, answer: a })
+  const old = card('kursy/k/t', 'Czym jest PPP?', 'Wsparcie po zdarzeniu.')
+  let state = grade({}, old.id, 2, 1000)
+
+  // Pierwsze przejście dopisuje skrót odpowiedzi; drugie niczego już nie zmienia.
+  state = reconcileSrs(state, [old])
+  assert.equal(state[old.id].a, hashText(old.answer))
+  assert.equal(reconcileSrs(state, [old]), state)
+  // Kolejna ocena nie gubi skrótu.
+  assert.equal(grade(state, old.id, 2, 2000)[old.id].a, hashText(old.answer))
+
+  // Notatka przeniesiona do innego folderu: to samo pytanie, inna ścieżka.
+  const moved = card('studia/przedmioty/x/t', old.question, old.answer)
+  const afterMove = reconcileSrs(state, [moved])
+  assert.equal(afterMove[moved.id].interval, state[old.id].interval)
+  assert.equal(afterMove[old.id], undefined)
+
+  // Literówka w pytaniu poprawiona: ta sama notatka i odpowiedź.
+  const edited = card(old.path, 'Czym jest PPP (pierwsza pomoc psychologiczna)?', old.answer)
+  const other = card(old.path, 'Nowe pytanie?', 'Inna odpowiedź.')
+  const afterEdit = reconcileSrs(state, [edited, other])
+  assert.equal(afterEdit[edited.id].reps, 1)
+  assert.equal(afterEdit[other.id], undefined)
+  assert.equal(afterEdit[old.id], undefined)
+
+  // Dwie pasujące fiszki albo zajęta fiszka docelowa — niczego nie zgadujemy.
+  const twin = card('kursy/inny/t', old.question, old.answer)
+  assert.equal(reconcileSrs(state, [moved, twin]), state)
+  const taken = grade(state, moved.id, 3, 3000)
+  const kept = reconcileSrs(taken, [moved])
+  assert.equal(kept[moved.id].last, 3000)
+  assert.ok(kept[old.id])
+  assert.equal(reconcileSrs(null, [old]), null)
 })

@@ -64,7 +64,7 @@ Notatka z kursu/przedmiotu: ramka „W skrócie” (pierwszy akapit), „W pigu�
 aplikacja sama robi fiszki, egzamin i „Pojęcie na teraz” — trzymaj się tego zapisu. Prosty, naturalny język, polskie cudzysłowy i półpauzy.
 Treść parafrazujemy, nie przepisujemy dłuższych cytatów z materiałów.
 
-Projekt leży na dysku exFAT (`/Volumes/Laura_4T/PLIKI_NOWA_SEGREGACJA/PSYCHOLOGIA/Aplikacja`) — macOS dokłada tam pliki-cienie `._nazwa`.
+Na Macu projekt leży na dysku exFAT — macOS dokłada tam pliki-cienie `._nazwa`.
 Lint i testy je pomijają, a `npm run check` czyści je na starcie (`npm run clean:mac`, też przy błędach gita).
 
 ## Zasady
@@ -83,12 +83,20 @@ Lint i testy je pomijają, a `npm run check` czyści je na starcie (`npm run cle
   bez logowania (`src/source/local.js`); `--mode firebase` (`npm run build:firebase`) — logowanie Google, notatki
   z Firestore, w paczce strony nie ma ani jednej notatki (`src/source/firebase.js`). Oba pliki mają to samo API.
   Prywatności pilnują reguły `firestore.rules` (lista `dozwoleni/{email}`), a `npm run test:bez-notatek` sprawdza,
-  że do paczki nic nie przeciekło. Notatki wysyła `npm run wyslij-notatki`. Cały plan i kroki do uruchomienia:
-  `docs/PLAN_LOGOWANIE_I_PUBLIKACJA.md`. Tego repo nie upubliczniamy (notatki są w historii).
-- **Publiczne repo `Psychologia`** ma sam kod: `npm run publikuj-kod -- <klon>` kopiuje ostatni commit bez `content/`.
+  że do paczki nic nie przeciekło. Po dodaniu notatek: `npm run notatka` (testy treści + wysyłka do Firestore).
+  Cały plan i kroki do uruchomienia: `docs/PLAN_LOGOWANIE_I_PUBLIKACJA.md`.
+- **Publiczne repo `Psychologia`** ma sam kod: `npm run publikuj-kod -- <klon>` kopiuje ostatni commit bez `content/`
+  i wycina z plików `.md` fragmenty między `<!-- prywatne -->` a `<!-- /prywatne -->` — tak oznaczaj wszystko, co dotyczy
+  tylko prywatnego repo (ścieżki na dysku, klucze, adres repo z notatkami). Prywatnego repo nie upubliczniamy.
   Testy idą tam na `przyklad/content/` — przykładowe notatki muszą spełniać to, czego wymagają testy
   (układ działów z `test/content.test.js`, co najmniej 10 fiszek w Studiach, linki między kompendiami, pole `dodano:`).
 - Treść notatek idzie do HTML-a przez DOMPurify (`src/sanitize.js`) — nie wstawiaj `renderMarkdown` bez niego.
+- Historia powtórek trzyma się identyfikatora fiszki (ścieżka + skrót pytania). Po przeniesieniu notatki albo poprawce
+  pytania przepina ją `reconcileSrs` (`src/lib/srs.js`): to samo pytanie pod nową ścieżką albo ta sama odpowiedź w tej samej
+  notatce. Zmiana pytania i odpowiedzi naraz = nowa fiszka — poprawiaj jedno na raz.
+- Kopia zapasowa danych nauki: „Postęp” -> „Pobierz kopię” / „Wczytaj kopię” (`src/lib/backup.js`). Nieudany zapis albo
+  odrzucona synchronizacja pokazują pasek z ostrzeżeniem (`reportProblem` w `src/store.js`) — nie łykaj takich błędów po cichu.
+- Wylogowanie czyści z urządzenia dane nauki i notatki z pamięci podręcznej (`signOut` w `src/source/firebase.js`).
 - Fiszki biorą się same z sekcji „## Szybka powtórka” (pytania) i „## Słowniczek” (definicje) oraz ze zdań
   `**Pojęcie** to …` (`src/lib/flashcards.js`). Nauka (fiszki, egzamin, postęp, mapa, „Pojęcie na teraz”) liczy się
   osobno dla Studiów i Kursów (przełącznik, `useLearnScope`). „Ostatnio dodane” bierze datę z historii gita albo z pola
@@ -98,7 +106,8 @@ Lint i testy je pomijają, a `npm run check` czyści je na starcie (`npm run cle
 - **Testy za każdym razem.** Przed końcem pracy i przed commitem: `npm run check` = lint + testy logiki
   (`test/`, Node) + strażnik prywatności (`scripts/sprawdz-paczke.mjs`) + testy aplikacji (`e2e/`, Playwright na zbudowanej
   wersji, iPhone/WebKit + Android/Chromium) + ekran logowania w trybie Firebase (`e2e-logowanie/`).
-  Hook `.githooks/pre-push` uruchamia to samo przed każdym pushem, a GitHub Actions (`.github/workflows/testy.yml`) po nim.
+  Hook `.githooks/pre-push` uruchamia to samo przed każdym pushem (gdy zmieniły się same notatki — tylko
+  `npm run check:tresc`: lint i testy logiki), a GitHub Actions (`.github/workflows/testy.yml`) po nim.
   Nowa logika -> test w `test/`; nowy ekran lub zachowanie -> test w `e2e/app.spec.js`.
 - Testy e2e czytają prawdziwy `content/` (nie zakładają „Temat 1”) — nowe notatki są sprawdzane automatycznie:
   każda się otwiera, każdy ekran w obu motywach przechodzi zasady telefonu (`e2e/telefon.spec.js`: brak poziomego
@@ -112,5 +121,4 @@ Lint i testy je pomijają, a `npm run check` czyści je na starcie (`npm run cle
 
 ## Git
 
-Repo `git@github.com:lauranowakkontakt-creator/Psycho.git`, osobny deploy key `~/.ssh/psycho_deploy_ed25519`
-(ustawiony w `core.sshCommand` tego klonu). Przed pracą `git fetch` — Laura pracuje w kilku sesjach naraz.
+Przed pracą `git fetch` — Laura pracuje w kilku sesjach naraz.
